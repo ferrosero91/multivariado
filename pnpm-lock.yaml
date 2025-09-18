@@ -183,6 +183,9 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.18.6
+      '@types/plotly.js':
+        specifier: ^3.0.6
+        version: 3.0.6
       '@types/react':
         specifier: ^18.2.0
         version: 18.3.24
@@ -1189,6 +1192,9 @@ packages:
 
   '@types/offscreencanvas@2019.7.3':
     resolution: {integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==}
+
+  '@types/plotly.js@3.0.6':
+    resolution: {integrity: sha512-K+EhZsMUZ2Zjna5gaDOaEfdwKLtHUT7sSsBw2gbRT2mOLWVl9pI4FF8EDH2ytNAdgM/Gh6UhgfRiAtHfDAcY5g==}
 
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
@@ -3028,6 +3034,8 @@ snapshots:
       undici-types: 6.21.0
 
   '@types/offscreencanvas@2019.7.3': {}
+
+  '@types/plotly.js@3.0.6': {}
 
   '@types/prop-types@15.7.15': {}
 

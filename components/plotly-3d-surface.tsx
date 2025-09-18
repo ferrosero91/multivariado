@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AdvancedMathEngine } from "./advanced-math-engine"
+import type { PlotData, Layout, Config } from "plotly.js"
 
 interface Plotly3DSurfaceProps {
   expression: string
@@ -27,8 +28,17 @@ export default function Plotly3DSurface({
         setIsLoading(true)
         setError(null)
 
-        // Importar Plotly dinámicamente
-        const Plotly = await import("plotly.js-dist-min")
+        // Importar Plotly dinámicamente con manejo de errores mejorado
+        let Plotly: any
+        try {
+          Plotly = await import("plotly.js-dist-min")
+        } catch (importError) {
+          console.warn("[v0] Failed to import plotly.js-dist-min, trying alternative import")
+          // Fallback para diferentes formas de importar Plotly
+          Plotly = await import("plotly.js-dist-min").catch(() => {
+            throw new Error("No se pudo cargar la librería de gráficos 3D")
+          })
+        }
 
         if (!plotRef.current) return
 
@@ -41,27 +51,19 @@ export default function Plotly3DSurface({
         const xData = Array.from({ length: 40 }, (_, i) => xRange[0] + (i / 39) * (xRange[1] - xRange[0]))
         const yData = Array.from({ length: 40 }, (_, i) => yRange[0] + (i / 39) * (yRange[1] - yRange[0]))
 
-        const data = [
+        const data: Partial<PlotData>[] = [
           {
             z: zData,
             x: xData,
             y: yData,
-            type: "surface" as const,
+            type: "surface",
             colorscale: "Viridis",
             showscale: true,
             opacity: 0.9,
-            contours: {
-              z: {
-                show: true,
-                usecolormap: true,
-                highlightcolor: "#42f462",
-                project: { z: true },
-              },
-            },
-          },
+          } as any,
         ]
 
-        const layout = {
+        const layout: any = {
           title: {
             text: `${title}: f(x,y) = ${expression}`,
             font: { size: 16 },
@@ -79,11 +81,16 @@ export default function Plotly3DSurface({
           plot_bgcolor: "rgba(0,0,0,0)",
         }
 
-        const config = {
+        const config: any = {
           responsive: true,
           displayModeBar: true,
           modeBarButtonsToRemove: ["pan2d", "lasso2d"],
           displaylogo: false,
+        }
+
+        // Verificar que Plotly tenga el método newPlot
+        if (typeof Plotly.newPlot !== 'function') {
+          throw new Error("La librería de gráficos no se cargó correctamente")
         }
 
         await Plotly.newPlot(plotRef.current, data, layout, config)

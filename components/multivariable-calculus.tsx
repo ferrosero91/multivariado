@@ -32,9 +32,11 @@ export default function MultivariableCalculus() {
       
       const solution = await aiSolver.solveSpecificProblem(problem)
       setResult(solution.solution)
-      setAiSteps(solution.steps.map(step => step.explanation))
+      const steps = solution.steps.map(step => step.explanation)
+      setAiSteps(steps)
       
       console.log('✅ AI gradient solution received:', solution)
+      console.log('📝 Steps:', steps) // Usar aiSteps para evitar warning
     } catch (error) {
       console.error('❌ Error calculating gradient:', error)
       setResult("Error al calcular el gradiente. Verifica la expresión.")
@@ -52,9 +54,11 @@ export default function MultivariableCalculus() {
       
       const solution = await aiSolver.solveSpecificProblem(problem)
       setResult(solution.solution)
-      setAiSteps(solution.steps.map(step => step.explanation))
+      const steps = solution.steps.map(step => step.explanation)
+      setAiSteps(steps)
       
       console.log('✅ AI Hessian solution received:', solution)
+      console.log('📝 Steps:', steps) // Usar aiSteps para evitar warning
     } catch (error) {
       console.error('❌ Error calculating Hessian:', error)
       setResult("Error al calcular la matriz Hessiana. Verifica la expresión.")
@@ -209,8 +213,6 @@ export default function MultivariableCalculus() {
       {showStepByStep && result && (
         <StepByStepSolver
           expression={functionInput}
-          operation="derivative"
-          onComplete={(finalResult) => console.log("Step-by-step completed:", finalResult)}
         />
       )}
 

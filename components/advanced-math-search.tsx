@@ -240,87 +240,89 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Buscador principal estilo Symbolab */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-600 overflow-hidden">
-        <div className="p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-2xl shadow-lg sm:shadow-xl border border-gray-200 dark:border-slate-600 overflow-hidden">
+        <div className="p-3 sm:p-4 lg:p-6">
           {/* Input principal */}
-          <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="relative mb-3 sm:mb-4">
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <Input
               placeholder="d/dx (x^2 + 3x + 1)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-24 py-4 text-lg border-0 bg-gray-50 dark:bg-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-slate-600 transition-all text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+              className="pl-10 sm:pl-12 pr-20 sm:pr-24 py-3 sm:py-4 text-base sm:text-lg border-0 bg-gray-50 dark:bg-slate-700 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-600 transition-all text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
               onKeyPress={(e) => e.key === 'Enter' && handleSolveEquation()}
             />
 
             {/* Botones de input alternativo */}
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+            <div className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 flex gap-0.5 sm:gap-1">
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={startCamera}
-                className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg"
+                className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-md sm:rounded-lg"
                 title="Capturar con cámara"
               >
-                <Camera className="h-4 w-4 text-gray-500" />
+                <Camera className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
               </Button>
 
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => fileInputRef.current?.click()}
-                className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg"
+                className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-md sm:rounded-lg"
                 title="Subir imagen"
               >
-                <Upload className="h-4 w-4 text-gray-500" />
+                <Upload className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
               </Button>
 
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={startVoiceRecognition}
-                className={`h-8 w-8 p-0 rounded-lg ${isListening
+                className={`h-7 w-7 sm:h-8 sm:w-8 p-0 rounded-md sm:rounded-lg ${isListening
                   ? "bg-red-100 text-red-600 dark:bg-red-900/30"
                   : "hover:bg-gray-200 dark:hover:bg-slate-600"
                   }`}
                 title="Reconocimiento de voz"
                 disabled={isListening}
               >
-                {isListening ? <Volume2 className="h-4 w-4 animate-pulse" /> : <Mic className="h-4 w-4 text-gray-500" />}
+                {isListening ? <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 animate-pulse" /> : <Mic className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />}
               </Button>
             </div>
           </div>
 
           {/* Botones de acción principales */}
-          <div className="flex gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-4">
             <Button
               onClick={handleSolveEquation}
               disabled={!searchQuery.trim()}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 rounded-xl shadow-lg"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium sm:font-semibold py-2.5 sm:py-3 rounded-lg sm:rounded-xl shadow-sm sm:shadow-lg text-sm sm:text-base"
             >
-              <Zap className="h-4 w-4 mr-2" />
-              Resolver Paso a Paso
+              <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Resolver Paso a Paso</span>
+              <span className="sm:hidden">Resolver</span>
             </Button>
 
             <Button
               variant="outline"
               onClick={() => onSearch(searchQuery, "text")}
               disabled={!searchQuery.trim()}
-              className="px-6 py-3 border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl font-semibold transition-all"
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 border border-border hover:bg-accent rounded-lg sm:rounded-xl font-medium sm:font-semibold transition-all text-sm sm:text-base"
             >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Explicar Concepto
+              <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Explicar Concepto</span>
+              <span className="sm:hidden">Explicar</span>
             </Button>
           </div>
 
           {/* Acciones rápidas */}
-          <div className="space-y-3">
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Acciones rápidas:</p>
-            <div className="flex gap-2 flex-wrap">
+          <div className="space-y-2 sm:space-y-3">
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium">Acciones rápidas:</p>
+            <div className="flex gap-1.5 sm:gap-2 flex-wrap">
               {quickActions.map((action, index) => (
                 <Badge
                   key={index}
-                  className="cursor-pointer px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white border-0 rounded-full font-medium transition-all hover:scale-105 shadow-sm"
+                  className="cursor-pointer px-2 sm:px-3 py-1 sm:py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground border-0 rounded-full font-medium transition-all hover:scale-105 shadow-sm text-xs sm:text-sm"
                   onClick={() => handleQuickAction(action.query)}
                 >
                   {action.label}
@@ -333,36 +335,36 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
 
       {/* Modal de cámara */}
       {isCameraOpen && (
-        <Card className="border-2 border-primary">
-          <CardContent className="p-4">
-            <div className="space-y-4">
+        <Card className="border border-primary mt-3 sm:mt-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Capturar Ecuación</h3>
+                <h3 className="text-base sm:text-lg font-semibold">Capturar Ecuación</h3>
                 <Button variant="ghost" size="sm" onClick={stopCamera}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
 
               <div className="relative bg-black rounded-lg overflow-hidden">
-                <video ref={videoRef} className="w-full h-64 object-cover" autoPlay playsInline />
+                <video ref={videoRef} className="w-full h-48 sm:h-64 object-cover" autoPlay playsInline />
 
                 {/* Overlay de guía */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="border-2 border-white border-dashed rounded-lg w-3/4 h-3/4 flex items-center justify-center">
-                    <p className="text-white text-sm bg-black/50 px-2 py-1 rounded">Centra la ecuación aquí</p>
+                    <p className="text-white text-xs sm:text-sm bg-black/50 px-2 py-1 rounded text-center">Centra la ecuación aquí</p>
                   </div>
                 </div>
               </div>
 
-              <Button onClick={captureAndProcessImage} disabled={isProcessing} className="w-full">
+              <Button onClick={captureAndProcessImage} disabled={isProcessing} className="w-full text-sm sm:text-base">
                 {isProcessing ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-spin" />
                     Procesando...
                   </>
                 ) : (
                   <>
-                    <Camera className="h-4 w-4 mr-2" />
+                    <Camera className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                     Capturar y Analizar
                   </>
                 )}
@@ -374,20 +376,20 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
 
       {/* Resultado del OCR */}
       {ocrResult && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-semibold text-green-800 dark:text-green-200">
+        <Card className="border-green-200 bg-green-50 dark:bg-green-900/20 mt-3 sm:mt-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-green-800 dark:text-green-200 text-sm sm:text-base">
                   Ecuación Reconocida (Confianza: {confidence}%)
                 </h4>
-                <p className="text-green-700 dark:text-green-300 font-mono text-lg mt-1">{ocrResult}</p>
-                <div className="flex gap-2 mt-3">
-                  <Button size="sm" onClick={() => setSearchQuery(ocrResult)}>
+                <p className="text-green-700 dark:text-green-300 font-mono text-sm sm:text-lg mt-1 break-all">{ocrResult}</p>
+                <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                  <Button size="sm" onClick={() => setSearchQuery(ocrResult)} className="text-xs sm:text-sm">
                     Usar esta ecuación
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setOcrResult("")}>
+                  <Button size="sm" variant="outline" onClick={() => setOcrResult("")} className="text-xs sm:text-sm">
                     Descartar
                   </Button>
                 </div>

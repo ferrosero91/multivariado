@@ -41,8 +41,8 @@ export default function SymbolabInspiredApp() {
       title: "Cálculo Diferencial",
       description: "Derivadas, límites y análisis de funciones",
       icon: FunctionSquare,
-      color: "bg-gradient-to-br from-blue-500 to-blue-600",
-      hoverColor: "hover:from-blue-600 hover:to-blue-700",
+      color: "bg-primary",
+      hoverColor: "hover:bg-primary/90",
       component: DifferentialCalculus,
     },
     {
@@ -50,8 +50,8 @@ export default function SymbolabInspiredApp() {
       title: "Cálculo Integral",
       description: "Integrales definidas e indefinidas",
       icon: Integral,
-      color: "bg-gradient-to-br from-emerald-500 to-emerald-600",
-      hoverColor: "hover:from-emerald-600 hover:to-emerald-700",
+      color: "bg-primary",
+      hoverColor: "hover:bg-primary/90",
       component: IntegralCalculus,
     },
     {
@@ -59,8 +59,8 @@ export default function SymbolabInspiredApp() {
       title: "Cálculo Multivariable",
       description: "Funciones de varias variables y superficies 3D",
       icon: Calculator,
-      color: "bg-gradient-to-br from-purple-500 to-purple-600",
-      hoverColor: "hover:from-purple-600 hover:to-purple-700",
+      color: "bg-primary",
+      hoverColor: "hover:bg-primary/90",
       component: MultivariableCalculus,
     },
     {
@@ -68,8 +68,8 @@ export default function SymbolabInspiredApp() {
       title: "Ecuaciones Diferenciales",
       description: "Solución de ecuaciones diferenciales ordinarias",
       icon: TrendingUp,
-      color: "bg-gradient-to-br from-orange-500 to-orange-600",
-      hoverColor: "hover:from-orange-600 hover:to-orange-700",
+      color: "bg-primary",
+      hoverColor: "hover:bg-primary/90",
       component: DifferentialEquations,
     },
     {
@@ -77,8 +77,8 @@ export default function SymbolabInspiredApp() {
       title: "Geometría",
       description: "Cálculos geométricos y trigonométricos",
       icon: Shapes,
-      color: "bg-gradient-to-br from-pink-500 to-pink-600",
-      hoverColor: "hover:from-pink-600 hover:to-pink-700",
+      color: "bg-primary",
+      hoverColor: "hover:bg-primary/90",
       component: GeometryCalculator,
     },
     {
@@ -86,8 +86,8 @@ export default function SymbolabInspiredApp() {
       title: "Estadística",
       description: "Análisis estadístico y probabilidad",
       icon: BarChart3,
-      color: "bg-gradient-to-br from-indigo-500 to-indigo-600",
-      hoverColor: "hover:from-indigo-600 hover:to-indigo-700",
+      color: "bg-primary",
+      hoverColor: "hover:bg-primary/90",
       component: StatisticsCalculator,
     },
   ]
@@ -113,37 +113,70 @@ export default function SymbolabInspiredApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-100 dark:from-slate-900 dark:via-slate-800 dark:to-purple-900">
-      <header className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background">
+      <header className="bg-white dark:bg-slate-900 border-b border-border shadow-sm">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          {/* Mobile Layout */}
+          <div className="flex flex-col gap-3 sm:hidden">
+            <div className="flex items-center justify-between">
+              {/* Logo y título móvil */}
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary rounded-lg">
+                  <Calculator className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-foreground">EasyCal Pro</h1>
+                  <p className="text-xs text-muted-foreground">Calculadora profesional</p>
+                </div>
+              </div>
+              
+              {/* Botones de usuario móvil */}
+              <div className="flex items-center gap-1">
+                <AIStatusIndicator />
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent p-2">
+                  <User className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent p-2">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Barra de búsqueda móvil */}
+            <div className="w-full">
+              <AdvancedMathSearch onSearch={handleSearch} onSolve={handleSolveProblem} />
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex items-center justify-between">
             {/* Logo y título */}
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
-                <Calculator className="h-7 w-7 text-white" />
+              <div className="p-2 bg-primary rounded-lg">
+                <Calculator className="h-6 w-6 lg:h-7 lg:w-7 text-primary-foreground" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-white">
+                  <h1 className="text-xl lg:text-2xl font-bold text-foreground">
                     EasyCal Pro
                   </h1>
                   <AIStatusIndicator />
                 </div>
-                <p className="text-sm text-blue-100">Calculadora matemática de IA</p>
+                <p className="text-sm text-muted-foreground hidden md:block">Calculadora matemática profesional</p>
               </div>
             </div>
 
             {/* Barra de búsqueda central */}
-            <div className="flex-1 max-w-2xl mx-8">
+            <div className="flex-1 max-w-xl lg:max-w-2xl mx-4 lg:mx-8">
               <AdvancedMathSearch onSearch={handleSearch} onSolve={handleSolveProblem} />
             </div>
 
             {/* Botones de usuario */}
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 border border-white/30 rounded-lg">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent">
                 <User className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 border border-white/30 rounded-lg">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent">
                 <Settings className="h-5 w-5" />
               </Button>
             </div>
@@ -152,110 +185,110 @@ export default function SymbolabInspiredApp() {
       </header>
 
       {showStepSolver && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Solución Paso a Paso</h2>
-                <Button variant="ghost" onClick={() => setShowStepSolver(false)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <div className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 className="text-lg sm:text-2xl font-bold">Solución Paso a Paso</h2>
+                <Button variant="ghost" onClick={() => setShowStepSolver(false)} size="sm">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <StepByStepper expression={currentProblem} />
+              <div className="overflow-x-auto">
+                <StepByStepper expression={currentProblem} />
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {activeSection === "home" ? (
-        <main className="container mx-auto px-6 py-12">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-6">
-              Resuelve matemáticas con IA
+        <main className="container mx-auto px-3 sm:px-6 py-6 sm:py-12">
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
+              Calculadora Matemática Profesional
             </h2>
-            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-              Desde álgebra básica hasta cálculo multivariable, obtén soluciones paso a paso con visualizaciones 3D interactivas.
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto mb-6 sm:mb-10 leading-relaxed px-2">
+              Herramientas avanzadas de cálculo con soluciones paso a paso y visualizaciones interactivas para estudiantes y profesionales.
             </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              <Badge className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-lg">
-                <Zap className="h-4 w-4" />
-                Soluciones Instantáneas
+            <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
+              <Badge className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-primary text-primary-foreground border-0 text-xs sm:text-sm">
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
+                Soluciones Precisas
               </Badge>
-              <Badge className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-lg">
-                <BookOpen className="h-4 w-4" />
-                Pasos Detallados
+              <Badge className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-secondary text-secondary-foreground border border-border text-xs sm:text-sm">
+                <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+                Explicaciones Detalladas
               </Badge>
-              <Badge className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white border-0 shadow-lg">
-                <BarChart3 className="h-4 w-4" />
-                Gráficas 3D Interactivas
+              <Badge className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-accent text-accent-foreground border border-border text-xs sm:text-sm">
+                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                Visualizaciones Avanzadas
               </Badge>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-16">
             {calculatorSections.map((section, index) => (
               <Card
                 key={section.id}
-                className="group hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 cursor-pointer border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm hover:scale-105 overflow-hidden"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="group hover:shadow-lg transition-all duration-300 cursor-pointer border border-border bg-card hover:border-primary/20 overflow-hidden"
                 onClick={() => setActiveSection(section.id)}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-purple-50/30 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <CardHeader className="pb-6 relative z-10">
-                  <div className="flex items-start gap-4 mb-4">
+                <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
                     <div
-                      className={`p-4 rounded-2xl ${section.color} ${section.hoverColor} text-white shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}
+                      className={`p-2 sm:p-3 rounded-lg ${section.color} ${section.hoverColor} text-primary-foreground transition-all duration-300`}
                     >
-                      <section.icon className="h-7 w-7" />
+                      <section.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base sm:text-lg font-semibold text-card-foreground mb-1 sm:mb-2 leading-tight">
                         {section.title}
                       </CardTitle>
-                      <CardDescription className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                      <CardDescription className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
                         {section.description}
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="relative z-10">
+                <CardContent className="p-4 sm:p-6 pt-0">
                   <Button
-                    className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold py-3"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 font-medium text-sm"
+                    size="sm"
                   >
-                    Abrir Calculadora
-                    <section.icon className="h-4 w-4 ml-2" />
+                    <span className="hidden sm:inline">Abrir Calculadora</span>
+                    <span className="sm:hidden">Abrir</span>
+                    <section.icon className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="bg-gradient-to-r from-white via-purple-50 to-blue-50 dark:from-slate-800 dark:via-purple-900/20 dark:to-blue-900/20 rounded-3xl p-12 mb-16 shadow-2xl border border-purple-100 dark:border-slate-600">
-            <h3 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Potencia tu aprendizaje matemático
+          <div className="bg-card rounded-lg p-4 sm:p-6 lg:p-8 mb-8 sm:mb-16 border border-border">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-center mb-6 sm:mb-8 text-card-foreground">
+              Herramientas Profesionales de Cálculo
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="flex items-start gap-6">
-                <div className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg">
-                  <BookOpen className="h-8 w-8 text-white" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-primary rounded-lg flex-shrink-0">
+                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-xl mb-3 text-slate-800 dark:text-white">Practica Inteligente</h4>
-                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Ejercicios adaptativos con retroalimentación instantánea. Nuestro sistema de IA identifica tus áreas de mejora 
-                    y personaliza el contenido para maximizar tu aprendizaje.
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-base sm:text-lg mb-2 text-card-foreground">Soluciones Detalladas</h4>
+                  <p className="text-muted-foreground leading-relaxed text-sm">
+                    Obtén explicaciones paso a paso para cada problema, con metodología clara y fundamentación matemática rigurosa.
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-6">
-                <div className="p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg">
-                  <Zap className="h-8 w-8 text-white" />
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-primary rounded-lg flex-shrink-0">
+                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-xl mb-3 text-slate-800 dark:text-white">Comprende Visualmente</h4>
-                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Visualizaciones 3D interactivas, gráficos dinámicos y explicaciones paso a paso que transforman 
-                    conceptos abstractos en experiencias comprensibles.
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-base sm:text-lg mb-2 text-card-foreground">Visualización Avanzada</h4>
+                  <p className="text-muted-foreground leading-relaxed text-sm">
+                    Gráficos interactivos y representaciones 3D que facilitan la comprensión de conceptos matemáticos complejos.
                   </p>
                 </div>
               </div>
@@ -270,44 +303,46 @@ export default function SymbolabInspiredApp() {
 
 
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-8 text-slate-800 dark:text-white">Calculadoras más populares</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button variant="ghost" className="h-auto p-4 text-left hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20 border border-transparent rounded-lg transition-all duration-200">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-foreground">Herramientas Más Utilizadas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+              <Button variant="ghost" className="h-auto p-3 sm:p-4 text-left hover:bg-accent border border-border rounded-lg transition-all duration-200">
                 <div>
-                  <div className="font-semibold text-slate-800 dark:text-white">Calculadora de Álgebra</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Ecuaciones y sistemas</div>
+                  <div className="font-medium text-foreground text-xs sm:text-sm">Calculadora de Álgebra</div>
+                  <div className="text-xs text-muted-foreground mt-1">Ecuaciones y sistemas</div>
                 </div>
               </Button>
-              <Button variant="ghost" className="h-auto p-4 text-left hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-900/20 border border-transparent rounded-lg transition-all duration-200">
+              <Button variant="ghost" className="h-auto p-3 sm:p-4 text-left hover:bg-accent border border-border rounded-lg transition-all duration-200">
                 <div>
-                  <div className="font-semibold text-slate-800 dark:text-white">Calculadora de Derivadas</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Derivación paso a paso</div>
+                  <div className="font-medium text-foreground text-xs sm:text-sm">Calculadora de Derivadas</div>
+                  <div className="text-xs text-muted-foreground mt-1">Derivación paso a paso</div>
                 </div>
               </Button>
-              <Button variant="ghost" className="h-auto p-4 text-left hover:bg-emerald-50 hover:border-emerald-200 dark:hover:bg-emerald-900/20 border border-transparent rounded-lg transition-all duration-200">
+              <Button variant="ghost" className="h-auto p-3 sm:p-4 text-left hover:bg-accent border border-border rounded-lg transition-all duration-200">
                 <div>
-                  <div className="font-semibold text-slate-800 dark:text-white">Calculadora de Integrales</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Integración definida</div>
+                  <div className="font-medium text-foreground text-xs sm:text-sm">Calculadora de Integrales</div>
+                  <div className="text-xs text-muted-foreground mt-1">Integración definida</div>
                 </div>
               </Button>
-              <Button variant="ghost" className="h-auto p-4 text-left hover:bg-indigo-50 hover:border-indigo-200 dark:hover:bg-indigo-900/20 border border-transparent rounded-lg transition-all duration-200">
+              <Button variant="ghost" className="h-auto p-3 sm:p-4 text-left hover:bg-accent border border-border rounded-lg transition-all duration-200">
                 <div>
-                  <div className="font-semibold text-slate-800 dark:text-white">Calculadora de Matrices</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">Operaciones matriciales</div>
+                  <div className="font-medium text-foreground text-xs sm:text-sm">Calculadora de Matrices</div>
+                  <div className="text-xs text-muted-foreground mt-1">Operaciones matriciales</div>
                 </div>
               </Button>
             </div>
           </div>
         </main>
       ) : (
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-6">
-            <Button variant="outline" onClick={() => setActiveSection("home")} className="mb-4">
+        <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+          <div className="mb-4 sm:mb-6">
+            <Button variant="outline" onClick={() => setActiveSection("home")} className="mb-3 sm:mb-4 border-border hover:bg-accent text-sm">
               ← Volver al inicio
             </Button>
-            <h2 className="text-3xl font-bold">{calculatorSections.find((s) => s.id === activeSection)?.title}</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold text-foreground">{calculatorSections.find((s) => s.id === activeSection)?.title}</h2>
           </div>
-          {renderActiveComponent()}
+          <div className="overflow-x-auto">
+            {renderActiveComponent()}
+          </div>
         </main>
       )}
     </div>
