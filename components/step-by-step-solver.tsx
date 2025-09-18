@@ -14,7 +14,9 @@ import {
   Copy, 
   Download,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Brain,
+  Zap
 } from "lucide-react"
 import { aiSolver, type MathSolution } from "@/lib/ai-solver"
 
@@ -145,6 +147,18 @@ export default function StepByStepper({ expression }: StepByStepperProps) {
             <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
               <Calculator className="h-3 w-3 mr-1" />
               {solution.type}
+            </Badge>
+            
+            {solution.provider && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                <Brain className="h-3 w-3 mr-1" />
+                Resuelto por {solution.provider}
+              </Badge>
+            )}
+            
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+              <Zap className="h-3 w-3 mr-1" />
+              {Math.round(solution.confidence * 100)}% confianza
             </Badge>
             <Badge variant="outline" className="text-green-600 border-green-300">
               <CheckCircle className="h-3 w-3 mr-1" />

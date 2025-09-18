@@ -1,5 +1,5 @@
 // Servicio de IA para resolver ecuaciones matemáticas paso a paso
-// Usando APIs gratuitas como Groq, OpenRouter, o Hugging Face
+// Sistema multi-IA con fallback automático
 
 interface SolutionStep {
   step: number
@@ -14,43 +14,239 @@ interface MathSolution {
   steps: SolutionStep[]
   type: string
   confidence: number
+  provider?: string
+}
+
+interface AIProvider {
+  name: string
+  isAvailable: boolean
+  priority: number
+  solve: (problem: string) => Promise<MathSolution>
 }
 
 class AIMathSolver {
+  private providers: AIProvider[] = []
   private groqApiKey: string | null = null
-  private groqBaseUrl: string = 'https://api.groq.com/openai/v1'
-  private huggingFaceUrl: string = 'https://api-inference.huggingface.co'
+  private openRouterApiKey: string | null = null
+  private huggingFaceApiKey: string | null = null
 
   constructor() {
     // Obtener API keys de variables de entorno
     this.groqApiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY || null
+    this.openRouterApiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || null
+    this.huggingFaceApiKey = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY || null
+    
+    this.initializeProviders()
     
     if (typeof window !== 'undefined') {
-      console.log('🤖 AI Math Solver initialized')
-      console.log('📡 Groq API:', this.groqApiKey ? '✅ Configured' : '❌ Not configured')
-      if (this.groqApiKey) {
-        console.log('🔑 API Key preview:', this.groqApiKey.substring(0, 10) + '...')
-      }
+      console.log('🤖 Multi-AI Math Solver initialized')
+      this.logProviderStatus()
     }
   }
 
-  async solveMathProblem(problem: string): Promise<MathSolution> {
-    console.log('🔍 Solving problem:', problem)
+  private initializeProviders() {
+    // Groq (Prioridad alta - muy rápido y preciso)
+    this.providers.push({
+      name: 'Groq',
+      isAvailable: !!this.groqApiKey,
+      priority: 1,
+      solve: (problem: string) => this.solveWithGroq(problem)
+    })
+
+    // OpenRouter (Prioridad media - modelos gratuitos disponibles)
+    this.providers.push({
+      name: 'OpenRouter',
+      isAvailable: true, // Tiene modelos gratuitos sin API key
+      priority: 2,
+      solve: (problem: string) => this.solveWithOpenRouter(problem)
+    })
+
+    // Hugging Face (Prioridad media - API gratuita)
+    this.providers.push({
+      name: 'Hugging Face',
+      isAvailable: true, // API gratuita disponible
+      priority: 3,
+      solve: (problem: string) => this.solveWithHuggingFace(problem)
+    })
+
+    // Cohere (Prioridad baja - API gratuita limitada)
+    this.providers.push({
+      name: 'Cohere',
+      isAvailable: true,
+      priority: 4,
+      solve: (problem: string) => this.solveWithCohere(problem)
+    })
+
+    // Ollama Local (Prioridad baja - requiere instalación local)
+    this.providers.push({
+      name: 'Ollama Local',
+      isAvailable: false, // Se detectará dinámicamente
+      priority: 5,
+      solve: (problem: string) => this.solveWithOllama(problem)
+    })
+
+    // Fallback Local (Siempre disponible)
+    this.providers.push({
+      name: 'Local Fallback',
+      isAvailable: true,
+      priority: 10,
+      solve: (problem: string) => Promise.resolve(this.generateFallbackSolution(problem))
+    })
+
+    // Ordenar por prioridad
+    this.providers.sort((a, b) => a.priority - b.priority)
+  }
+
+  private logProviderStatus() {
+    console.log('🔧 AI Providers Status:')
+    this.providers.forEach(provider => {
+      const status = provider.isAvailable ? '✅ Disponible' : '❌ No disponible'
+      console.log(`  ${provider.name}: ${status} (Prioridad: ${provider.priority})`)
+    })
+  }
+
+  // Método para verificar dinámicamente la disponibilidad de proveedores
+  async checkProviderAvailability(): Promise<void> {
+    console.log('🔍 Checking provider availability...')
     
+    // Verificar Ollama local
     try {
-      // Intentar con Groq primero si tenemos API key
-      if (this.groqApiKey) {
-        console.log('🚀 Using Groq API')
-        return await this.solveWithGroq(problem)
-      } else {
-        console.log('🔄 Using fallback methods')
-        return await this.solveWithFallback(problem)
+      const ollamaProvider = this.providers.find(p => p.name === 'Ollama Local')
+      if (ollamaProvider) {
+        const response = await fetch('http://localhost:11434/api/tags', {
+          method: 'GET',
+          signal: AbortSignal.timeout(2000)
+        })
+        ollamaProvider.isAvailable = response.ok
+        console.log(`🏠 Ollama Local: ${ollamaProvider.isAvailable ? '✅ Available' : '❌ Not running'}`)
       }
     } catch (error) {
-      console.error('❌ Error solving math problem:', error)
-      console.log('🛠️ Generating fallback solution')
-      return this.generateFallbackSolution(problem)
+      const ollamaProvider = this.providers.find(p => p.name === 'Ollama Local')
+      if (ollamaProvider) {
+        ollamaProvider.isAvailable = false
+      }
     }
+
+    // Verificar otros proveedores con requests de prueba ligeros
+    await this.testProviderConnectivity()
+  }
+
+  private async testProviderConnectivity(): Promise<void> {
+    const testPromises = this.providers
+      .filter(p => p.name !== 'Local Fallback' && p.name !== 'Ollama Local')
+      .map(async (provider) => {
+        try {
+          // Test rápido de conectividad (sin resolver problema completo)
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 segundos
+
+          let testUrl = ''
+          switch (provider.name) {
+            case 'Groq':
+              testUrl = 'https://api.groq.com/openai/v1/models'
+              break
+            case 'OpenRouter':
+              testUrl = 'https://openrouter.ai/api/v1/models'
+              break
+            case 'Hugging Face':
+              testUrl = 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-small'
+              break
+            case 'Cohere':
+              testUrl = 'https://api.cohere.ai/v1/models'
+              break
+          }
+
+          if (testUrl) {
+            const response = await fetch(testUrl, {
+              method: 'GET',
+              signal: controller.signal,
+              headers: {
+                'Content-Type': 'application/json',
+                ...(provider.name === 'Groq' && this.groqApiKey && { 'Authorization': `Bearer ${this.groqApiKey}` }),
+                ...(provider.name === 'OpenRouter' && { 'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000' }),
+                ...(provider.name === 'Hugging Face' && this.huggingFaceApiKey && { 'Authorization': `Bearer ${this.huggingFaceApiKey}` })
+              }
+            })
+
+            clearTimeout(timeoutId)
+            
+            // Considerar disponible si responde (incluso con error de auth)
+            provider.isAvailable = response.status < 500
+            console.log(`🌐 ${provider.name}: ${provider.isAvailable ? '✅ Reachable' : '❌ Unreachable'} (${response.status})`)
+          }
+        } catch (error) {
+          provider.isAvailable = false
+          console.log(`🌐 ${provider.name}: ❌ Connection failed`)
+        }
+      })
+
+    await Promise.allSettled(testPromises)
+  }
+
+  async solveMathProblem(problem: string): Promise<MathSolution> {
+    console.log('🔍 Solving problem with multi-AI system:', problem)
+    
+    // Obtener proveedores disponibles ordenados por prioridad
+    const availableProviders = this.providers.filter(p => p.isAvailable)
+    
+    console.log('🚀 Available providers:', availableProviders.map(p => p.name).join(', '))
+    
+    // Intentar con cada proveedor en orden de prioridad
+    for (const provider of availableProviders) {
+      try {
+        console.log(`🔄 Trying ${provider.name}...`)
+        
+        const startTime = Date.now()
+        const result = await Promise.race([
+          provider.solve(problem),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 15000) // 15 segundos timeout
+          )
+        ])
+        
+        const duration = Date.now() - startTime
+        console.log(`✅ ${provider.name} succeeded in ${duration}ms`)
+        
+        // Agregar información del proveedor al resultado
+        result.provider = provider.name
+        
+        // Verificar calidad de la respuesta
+        if (this.isValidSolution(result)) {
+          return result
+        } else {
+          console.log(`⚠️ ${provider.name} returned invalid solution, trying next provider`)
+          continue
+        }
+        
+      } catch (error) {
+        console.log(`❌ ${provider.name} failed:`, error instanceof Error ? error.message : 'Unknown error')
+        
+        // Si es el último proveedor disponible, no continuar
+        if (provider === availableProviders[availableProviders.length - 1]) {
+          console.log('🛠️ All providers failed, using local fallback')
+          break
+        }
+        
+        continue
+      }
+    }
+    
+    // Si todos fallan, usar fallback local
+    console.log('🔧 Using local fallback solution')
+    const fallback = this.generateFallbackSolution(problem)
+    fallback.provider = 'Local Fallback'
+    return fallback
+  }
+
+  private isValidSolution(solution: MathSolution): boolean {
+    // Verificar que la solución tenga contenido válido
+    return !!(
+      solution.solution && 
+      solution.solution.trim().length > 0 &&
+      solution.steps && 
+      solution.steps.length > 0 &&
+      solution.solution !== 'Ver pasos para la solución'
+    )
   }
 
   private async solveWithGroq(problem: string): Promise<MathSolution> {
@@ -95,7 +291,7 @@ IMPORTANTE: Responde ÚNICAMENTE el JSON, sin texto adicional.`
       try {
         console.log(`🚀 Trying model: ${model}`)
 
-        const response = await fetch(`${this.groqBaseUrl}/chat/completions`, {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${this.groqApiKey}`,
@@ -167,83 +363,279 @@ IMPORTANTE: Responde ÚNICAMENTE el JSON, sin texto adicional.`
     throw new Error('All Groq models failed or are unavailable')
   }
 
-  private async solveWithFallback(problem: string): Promise<MathSolution> {
-    console.log('� Terying fallback methods...')
+  private async solveWithCohere(problem: string): Promise<MathSolution> {
+    console.log('🔮 Using Cohere API')
     
-    // Intentar con diferentes APIs gratuitas
-    try {
-      return await this.solveWithOpenRouter(problem)
-    } catch (error) {
-      console.log('⚠️ OpenRouter failed, trying Hugging Face...')
-      try {
-        return await this.solveWithHuggingFace(problem)
-      } catch (error2) {
-        console.log('⚠️ All APIs failed, using local logic...')
-        return this.generateFallbackSolution(problem)
-      }
-    }
-  }
+    const prompt = `Resuelve este problema matemático paso a paso en español:
 
-  private async solveWithOpenRouter(problem: string): Promise<MathSolution> {
-    // OpenRouter ofrece modelos gratuitos
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+PROBLEMA: ${problem}
+
+INSTRUCCIONES:
+- Si es una expresión como "x^2 + 3x + 1" sin operador, asume que se pide la DERIVADA
+- Si contiene "d/dx", calcula la derivada
+- Si contiene "∫", calcula la integral
+- Si contiene "=", resuelve la ecuación
+- Si contiene "lim", calcula el límite
+
+Responde con formato JSON:
+{
+  "type": "tipo de problema",
+  "solution": "respuesta final",
+  "steps": [{"step": 1, "description": "paso", "equation": "ecuación", "explanation": "explicación"}]
+}`
+
+    const response = await fetch('https://api.cohere.ai/v1/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
-        'X-Title': 'EasyCal Pro'
+        'Authorization': `Bearer ${this.huggingFaceApiKey || 'demo-key'}`, // Usar demo key si no hay API key
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3.2-3b-instruct:free',
-        messages: [
-          {
-            role: 'system',
-            content: 'Eres un profesor de matemáticas. Resuelve problemas paso a paso en español.'
-          },
-          {
-            role: 'user',
-            content: `Resuelve paso a paso: ${problem}`
-          }
-        ],
-        temperature: 0.1,
+        model: 'command-light',
+        prompt: prompt,
         max_tokens: 1000,
+        temperature: 0.1,
+        stop_sequences: ['}'],
       }),
     })
 
     if (response.ok) {
       const data = await response.json()
-      const content = data.choices[0].message.content
+      const content = data.generations[0].text
       return this.parseTextResponse(problem, content)
     }
 
-    throw new Error('OpenRouter API failed')
+    throw new Error('Cohere API failed')
   }
 
-  private async solveWithHuggingFace(problem: string): Promise<MathSolution> {
-    // Usar Hugging Face Inference API (gratuita)
-    const response = await fetch(
-      'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputs: `Resuelve paso a paso: ${problem}`,
-          parameters: {
-            max_length: 500,
-            temperature: 0.1,
-          },
-        }),
+  private async solveWithOllama(problem: string): Promise<MathSolution> {
+    console.log('🏠 Using Ollama Local')
+    
+    // Verificar si Ollama está disponible localmente
+    try {
+      const healthCheck = await fetch('http://localhost:11434/api/tags', {
+        method: 'GET',
+        signal: AbortSignal.timeout(2000) // 2 segundos timeout
+      })
+      
+      if (!healthCheck.ok) {
+        throw new Error('Ollama not available')
       }
-    )
+    } catch (error) {
+      throw new Error('Ollama local server not running')
+    }
+
+    const prompt = `Resuelve este problema matemático paso a paso en español: ${problem}
+
+Si es una expresión como "x^2 + 3x + 1" sin operador, calcula la derivada.
+Proporciona pasos detallados y la solución final.`
+
+    const response = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama3.2:3b', // Modelo ligero
+        prompt: prompt,
+        stream: false,
+        options: {
+          temperature: 0.1,
+          top_p: 0.9,
+        }
+      }),
+    })
 
     if (response.ok) {
       const data = await response.json()
-      return this.parseTextResponse(problem, data[0]?.generated_text || '')
+      return this.parseTextResponse(problem, data.response)
     }
 
-    throw new Error('Hugging Face API failed')
+    throw new Error('Ollama API failed')
+  }
+
+  private async solveWithOpenRouter(problem: string): Promise<MathSolution> {
+    console.log('🌐 Using OpenRouter API')
+    
+    const prompt = `Resuelve este problema matemático paso a paso en español:
+
+PROBLEMA: ${problem}
+
+INSTRUCCIONES ESPECÍFICAS:
+- Si es una expresión como "x^2 + 3x + 1" sin operador, asume que se pide la DERIVADA
+- Si contiene "d/dx", calcula la derivada
+- Si contiene "∫", calcula la integral
+- Si contiene "=", resuelve la ecuación
+- Si contiene "lim", calcula el límite
+
+Responde SOLO con un JSON válido en este formato:
+{
+  "type": "tipo de problema",
+  "solution": "respuesta final clara",
+  "steps": [
+    {
+      "step": 1,
+      "description": "nombre del paso",
+      "equation": "ecuación matemática",
+      "explanation": "explicación detallada"
+    }
+  ]
+}`
+
+    // Lista de modelos gratuitos de OpenRouter
+    const freeModels = [
+      'meta-llama/llama-3.2-3b-instruct:free',
+      'microsoft/phi-3-mini-128k-instruct:free',
+      'google/gemma-2-9b-it:free',
+      'qwen/qwen-2-7b-instruct:free'
+    ]
+
+    for (const model of freeModels) {
+      try {
+        console.log(`🔄 Trying OpenRouter model: ${model}`)
+        
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
+            'X-Title': 'EasyCal Pro',
+            ...(this.openRouterApiKey && { 'Authorization': `Bearer ${this.openRouterApiKey}` })
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              {
+                role: 'system',
+                content: 'Eres un profesor de matemáticas experto. Respondes ÚNICAMENTE con JSON válido.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.1,
+            max_tokens: 1200,
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const content = data.choices?.[0]?.message?.content?.trim()
+          
+          if (content) {
+            console.log(`✅ OpenRouter ${model} succeeded`)
+            
+            try {
+              // Intentar parsear como JSON
+              const jsonMatch = content.match(/\{[\s\S]*\}/)
+              const jsonString = jsonMatch ? jsonMatch[0] : content
+              const parsed = JSON.parse(jsonString)
+              
+              return {
+                problem,
+                solution: parsed.solution || 'Ver pasos para la solución',
+                steps: parsed.steps || [],
+                type: parsed.type || 'Matemáticas',
+                confidence: 0.85
+              }
+            } catch (parseError) {
+              console.log(`⚠️ JSON parse failed for ${model}, using text parsing`)
+              return this.parseTextResponse(problem, content)
+            }
+          }
+        } else {
+          console.log(`❌ OpenRouter ${model} failed:`, response.status)
+          continue
+        }
+      } catch (error) {
+        console.log(`❌ Error with OpenRouter ${model}:`, error)
+        continue
+      }
+    }
+
+    throw new Error('All OpenRouter models failed')
+  }
+
+  private async solveWithHuggingFace(problem: string): Promise<MathSolution> {
+    console.log('🤗 Using Hugging Face API')
+    
+    const prompt = `Resuelve este problema matemático paso a paso en español: ${problem}
+
+Si es una expresión como "x^2 + 3x + 1" sin operador, calcula la derivada.
+Proporciona pasos detallados y la solución final.`
+
+    // Lista de modelos gratuitos de Hugging Face
+    const models = [
+      'microsoft/DialoGPT-medium',
+      'facebook/blenderbot-400M-distill',
+      'microsoft/DialoGPT-small',
+      'google/flan-t5-base'
+    ]
+
+    for (const model of models) {
+      try {
+        console.log(`🔄 Trying Hugging Face model: ${model}`)
+        
+        const response = await fetch(
+          `https://api-inference.huggingface.co/models/${model}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(this.huggingFaceApiKey && { 'Authorization': `Bearer ${this.huggingFaceApiKey}` })
+            },
+            body: JSON.stringify({
+              inputs: prompt,
+              parameters: {
+                max_length: 800,
+                temperature: 0.1,
+                do_sample: true,
+                top_p: 0.9,
+              },
+              options: {
+                wait_for_model: true,
+                use_cache: false
+              }
+            }),
+          }
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          
+          // Manejar diferentes formatos de respuesta
+          let content = ''
+          if (Array.isArray(data) && data[0]?.generated_text) {
+            content = data[0].generated_text
+          } else if (data.generated_text) {
+            content = data.generated_text
+          } else if (typeof data === 'string') {
+            content = data
+          }
+          
+          if (content && content.trim().length > 0) {
+            console.log(`✅ Hugging Face ${model} succeeded`)
+            return this.parseTextResponse(problem, content)
+          }
+        } else {
+          const errorText = await response.text()
+          console.log(`❌ Hugging Face ${model} failed:`, response.status, errorText)
+          
+          // Si el modelo está cargando, esperar un poco
+          if (response.status === 503) {
+            console.log('⏳ Model is loading, waiting...')
+            await new Promise(resolve => setTimeout(resolve, 2000))
+            continue
+          }
+        }
+      } catch (error) {
+        console.log(`❌ Error with Hugging Face ${model}:`, error)
+        continue
+      }
+    }
+
+    throw new Error('All Hugging Face models failed')
   }
 
   private parseTextResponse(problem: string, response: string): MathSolution {
