@@ -72,7 +72,7 @@ export default function AIEnhancedOCR({ onEquationDetected, onClose }: AIEnhance
             // Paso 2: Análisis con IA (70% del progreso restante)
             setCurrentStep('Analizando con IA para mejorar precisión...')
             setProgress(40)
-            
+
             const aiEnhancedResults = await enhanceWithAI(ocrResults, imageData)
             setProgress(90)
 
@@ -143,10 +143,10 @@ Responde SOLO con la expresión matemática corregida:`
 
                 // Usar el sistema de IA que ya tienes
                 const aiResponse = await aiSolver.solveMathProblem(prompt)
-                
+
                 if (aiResponse && aiResponse.solution) {
                     const correctedText = aiResponse.solution.trim()
-                    
+
                     // Verificar que la corrección sea válida
                     if (correctedText.length > 0 && correctedText !== ocrResult.text) {
                         enhancedResults.push({
@@ -180,7 +180,7 @@ Responde SOLO con la expresión matemática corregida:`
     // API OCR.space (ya configurada)
     const tryOCRSpaceAPI = async (imageData: string | File): Promise<{ text: string; confidence: number }> => {
         const formData = new FormData()
-        
+
         if (typeof imageData === 'string') {
             const response = await fetch(imageData)
             const blob = await response.blob()
@@ -188,7 +188,7 @@ Responde SOLO con la expresión matemática corregida:`
         } else {
             formData.append('file', imageData)
         }
-        
+
         const apiKey = process.env.NEXT_PUBLIC_OCR_SPACE_API_KEY || 'helloworld'
         formData.append('apikey', apiKey)
         formData.append('language', 'eng')
@@ -203,21 +203,21 @@ Responde SOLO con la expresión matemática corregida:`
 
         if (response.ok) {
             const data = await response.json()
-            
+
             if (data.ParsedResults && data.ParsedResults[0]) {
                 const result = data.ParsedResults[0]
-                
+
                 if (result.ErrorMessage) {
                     throw new Error(`OCR.space error: ${result.ErrorMessage}`)
                 }
-                
+
                 return {
                     text: result.ParsedText || '',
                     confidence: result.TextOverlay?.HasOverlay ? 85 : 70
                 }
             }
         }
-        
+
         throw new Error('OCR.space API failed')
     }
 
@@ -345,17 +345,17 @@ Responde SOLO con la expresión matemática corregida:`
             <CardContent className="space-y-6">
                 {/* Botones de acción */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <Button 
-                        onClick={startCamera} 
+                    <Button
+                        onClick={startCamera}
                         disabled={isProcessing || isCameraOpen}
                         className="flex-1"
                     >
                         <Camera className="h-4 w-4 mr-2" />
                         Usar Cámara
                     </Button>
-                    
-                    <Button 
-                        variant="outline" 
+
+                    <Button
+                        variant="outline"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isProcessing}
                         className="flex-1"
@@ -364,8 +364,8 @@ Responde SOLO con la expresión matemática corregida:`
                         Subir Imagen
                     </Button>
 
-                    <Button 
-                        variant="secondary" 
+                    <Button
+                        variant="secondary"
                         onClick={resetScanner}
                         disabled={isProcessing}
                     >
@@ -378,11 +378,11 @@ Responde SOLO con la expresión matemática corregida:`
                 {isCameraOpen && (
                     <div className="space-y-4">
                         <div className="relative bg-black rounded-lg overflow-hidden">
-                            <video 
-                                ref={videoRef} 
-                                className="w-full h-48 sm:h-64 object-cover" 
-                                autoPlay 
-                                playsInline 
+                            <video
+                                ref={videoRef}
+                                className="w-full h-48 sm:h-64 object-cover"
+                                autoPlay
+                                playsInline
                             />
                         </div>
 
@@ -403,9 +403,9 @@ Responde SOLO con la expresión matemática corregida:`
                 {capturedImage && (
                     <div className="space-y-4">
                         <h4 className="font-semibold">Imagen Capturada:</h4>
-                        <img 
-                            src={capturedImage} 
-                            alt="Imagen capturada" 
+                        <img
+                            src={capturedImage}
+                            alt="Imagen capturada"
                             className="w-full max-h-64 object-contain bg-gray-100 rounded-lg"
                         />
                     </div>
@@ -445,7 +445,7 @@ Responde SOLO con la expresión matemática corregida:`
                             <CheckCircle className="h-5 w-5 text-green-600" />
                             Resultados OCR + IA:
                         </h4>
-                        
+
                         <div className="space-y-3">
                             {results.map((result, index) => (
                                 <div key={index} className="p-4 bg-gradient-to-r from-green-50 to-purple-50 dark:from-green-900/20 dark:to-purple-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -469,7 +469,7 @@ Responde SOLO con la expresión matemática corregida:`
                                                     </Badge>
                                                 )}
                                             </div>
-                                            
+
                                             <div className="space-y-2">
                                                 <div>
                                                     <p className="text-xs text-muted-foreground">OCR Original:</p>
@@ -477,7 +477,7 @@ Responde SOLO con la expresión matemática corregida:`
                                                         {result.text}
                                                     </p>
                                                 </div>
-                                                
+
                                                 {result.aiCorrected && (
                                                     <div>
                                                         <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -498,18 +498,18 @@ Responde SOLO con la expresión matemática corregida:`
                                                 )}
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex flex-col gap-1">
-                                            <Button 
-                                                size="sm" 
+                                            <Button
+                                                size="sm"
                                                 onClick={() => onEquationDetected(result.aiCorrected || result.processed, result.aiConfidence || result.confidence)}
                                             >
                                                 <Zap className="h-3 w-3 mr-1" />
                                                 Usar
                                             </Button>
-                                            
-                                            <Button 
-                                                size="sm" 
+
+                                            <Button
+                                                size="sm"
                                                 variant="outline"
                                                 onClick={() => navigator.clipboard.writeText(result.aiCorrected || result.processed)}
                                             >
