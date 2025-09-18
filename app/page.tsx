@@ -27,12 +27,18 @@ import AdvancedMathSearch from "@/components/advanced-math-search"
 import StepByStepper from "@/components/step-by-step-solver"
 import ApiStatus from "@/components/api-status"
 import AIStatusIndicator from "@/components/ai-status-indicator"
+import EnhancedMathOCR from "@/components/enhanced-math-ocr"
+import AIEnhancedOCR from "@/components/ai-enhanced-ocr"
+import SmartPatternOCR from "@/components/smart-pattern-ocr"
 
 
 export default function SymbolabInspiredApp() {
   const [activeSection, setActiveSection] = useState("home")
   const [searchQuery, setSearchQuery] = useState("")
   const [showStepSolver, setShowStepSolver] = useState(false)
+  const [showEnhancedOCR, setShowEnhancedOCR] = useState(false)
+  const [showAIEnhancedOCR, setShowAIEnhancedOCR] = useState(false)
+  const [showSmartPatternOCR, setShowSmartPatternOCR] = useState(false)
   const [currentProblem, setCurrentProblem] = useState("")
 
   const calculatorSections = [
@@ -202,6 +208,36 @@ export default function SymbolabInspiredApp() {
         </div>
       )}
 
+      {showEnhancedOCR && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <EnhancedMathOCR 
+              onEquationDetected={(equation, confidence) => {
+                setCurrentProblem(equation)
+                setShowEnhancedOCR(false)
+                setShowStepSolver(true)
+              }}
+              onClose={() => setShowEnhancedOCR(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {showAIEnhancedOCR && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <AIEnhancedOCR 
+              onEquationDetected={(equation, confidence) => {
+                setCurrentProblem(equation)
+                setShowAIEnhancedOCR(false)
+                setShowStepSolver(true)
+              }}
+              onClose={() => setShowAIEnhancedOCR(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {activeSection === "home" ? (
         <main className="container mx-auto px-3 sm:px-6 py-6 sm:py-12">
           <div className="text-center mb-8 sm:mb-16">
@@ -323,10 +359,17 @@ export default function SymbolabInspiredApp() {
                   <div className="text-xs text-muted-foreground mt-1">Integración definida</div>
                 </div>
               </Button>
-              <Button variant="ghost" className="h-auto p-3 sm:p-4 text-left hover:bg-accent border border-border rounded-lg transition-all duration-200">
+              <Button 
+                variant="ghost" 
+                className="h-auto p-3 sm:p-4 text-left hover:bg-accent border border-border rounded-lg transition-all duration-200"
+                onClick={() => setShowAIEnhancedOCR(true)}
+              >
                 <div>
-                  <div className="font-medium text-foreground text-xs sm:text-sm">Calculadora de Matrices</div>
-                  <div className="text-xs text-muted-foreground mt-1">Operaciones matriciales</div>
+                  <div className="font-medium text-foreground text-xs sm:text-sm flex items-center gap-1">
+                    OCR + IA Híbrido
+                    <span className="text-purple-600">✨</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">Máxima precisión con IA</div>
                 </div>
               </Button>
             </div>
