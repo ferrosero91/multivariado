@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, Camera, Upload, Mic, Zap, BookOpen, X, CheckCircle, Loader2, Volume2 } from "lucide-react"
+import { Search, Camera, Upload, Mic, Zap, BookOpen, X, CheckCircle, Loader2, Volume2, Eye } from "lucide-react"
+import MathOCRScanner from "./math-ocr-scanner"
 
 interface AdvancedMathSearchProps {
   onSearch: (query: string, type: "text" | "image" | "voice") => void
@@ -21,6 +22,7 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
   const [isProcessing, setIsProcessing] = useState(false)
   const [ocrResult, setOcrResult] = useState("")
   const [confidence, setConfidence] = useState(0)
+  const [showOCRScanner, setShowOCRScanner] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -222,6 +224,21 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
     }
   }
 
+  const handleEquationDetected = (equation: string, confidence: number) => {
+    console.log('📝 Equation detected via OCR:', equation, 'Confidence:', confidence)
+    setSearchQuery(equation)
+    setOcrResult(equation)
+    setConfidence(confidence)
+    setShowOCRScanner(false)
+    
+    // Auto-resolver si la confianza es alta
+    if (confidence > 80) {
+      setTimeout(() => {
+        onSolve(equation)
+      }, 500)
+    }
+  }
+
   const quickActions = [
     { label: "Derivada", query: "d/dx (x^2 + 3x + 1)" },
     { label: "Integral", query: "∫ x^2 dx" },
@@ -255,6 +272,16 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
 
             {/* Botones de input alternativo */}
             <div className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 flex gap-0.5 sm:gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowOCRScanner(true)}
+                className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-md sm:rounded-lg"
+                title="Reconocer ejercicios matemáticos"
+              >
+                <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+              </Button>
+
               <Button
                 size="sm"
                 variant="ghost"
@@ -328,6 +355,15 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
                   {action.label}
                 </Badge>
               ))}
+              
+              {/* Botón especial para OCR */}
+              <Badge
+                className="cursor-pointer px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 hover:bg-green-700 text-white border-0 rounded-full font-medium transition-all hover:scale-105 shadow-sm text-xs sm:text-sm"
+                onClick={() => setShowOCRScanner(true)}
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                Reconocer Ejercicios
+              </Badge>
             </div>
           </div>
         </div>
@@ -397,6 +433,18 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Scanner OCR */}
+      {showOCRScanner && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-6xl w-full max-h-[95vh] overflow-auto">
+            <MathOCRScanner
+              onEquationDetected={handleEquationDetected}
+              onClose={() => setShowOCRScanner(false)}
+            />
+          </div>
+        </div>
       )}
 
       {/* Input oculto para subir archivos */}
