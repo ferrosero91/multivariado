@@ -17,10 +17,39 @@ export default function MathTextRenderer({ text, className = "" }: MathTextRende
       
       // Procesar la línea para encontrar expresiones matemáticas
       let processedLine = line
+        // Procesar LaTeX básico
+        .replace(/\$([^$]+)\$/g, '$1')  // Remover $ de LaTeX para mostrar contenido
+        .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')  // \frac{a}{b} → (a)/(b)
+        .replace(/\\\{/g, '{')  // \{ → {
+        .replace(/\\\}/g, '}')  // \} → }
+        .replace(/\\,/g, ' ')   // \, → espacio
+        .replace(/\\ /g, ' ')   // \ → espacio
+        .replace(/\\cdot/g, '·')  // \cdot → ·
+        .replace(/\\times/g, '×')  // \times → ×
+        .replace(/\\div/g, '÷')    // \div → ÷
+        .replace(/\\pm/g, '±')     // \pm → ±
+        .replace(/\\mp/g, '∓')     // \mp → ∓
+        .replace(/\\infty/g, '∞')  // \infty → ∞
+        .replace(/\\int/g, '∫')    // \int → ∫
+        .replace(/\\sum/g, '∑')    // \sum → ∑
+        .replace(/\\prod/g, '∏')   // \prod → ∏
+        .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')  // \sqrt{x} → √(x)
+        .replace(/\\mu/g, 'μ')     // \mu → μ
+        .replace(/\\alpha/g, 'α')  // \alpha → α
+        .replace(/\\beta/g, 'β')   // \beta → β
+        .replace(/\\gamma/g, 'γ')  // \gamma → γ
+        .replace(/\\delta/g, 'δ')  // \delta → δ
+        .replace(/\\theta/g, 'θ')  // \theta → θ
+        .replace(/\\pi/g, 'π')     // \pi → π
+        .replace(/\\lambda/g, 'λ') // \lambda → λ
+        .replace(/\\sigma/g, 'σ')  // \sigma → σ
+        // Procesar exponentes LaTeX
+        .replace(/\^\{\\frac\{([^}]+)\}\{([^}]+)\}\}/g, '^(($1)/($2))')  // ^{\frac{a}{b}} → ^((a)/(b))
+        .replace(/\^\{([^}]+)\}/g, '^($1)')  // ^{expr} → ^(expr)
+        .replace(/_\{([^}]+)\}/g, '_($1)')   // _{expr} → _(expr)
         // Reemplazar símbolos matemáticos comunes
         .replace(/\*\*/g, '^')  // ** → ^
         .replace(/sqrt\(([^)]+)\)/g, '√($1)')  // sqrt(x) → √(x)
-        .replace(/\^(\d+)/g, '⁽$1⁾')  // ^2 → ⁽²⁾
         .replace(/\^2/g, '²')   // ^2 → ²
         .replace(/\^3/g, '³')   // ^3 → ³
         .replace(/\^4/g, '⁴')   // ^4 → ⁴
@@ -30,15 +59,6 @@ export default function MathTextRenderer({ text, className = "" }: MathTextRende
         .replace(/lim/g, 'lím')  // lim → lím
         .replace(/integral/gi, '∫')  // integral → ∫
         .replace(/infinity/gi, '∞')  // infinity → ∞
-        .replace(/alpha/gi, 'α')     // alpha → α
-        .replace(/beta/gi, 'β')      // beta → β
-        .replace(/gamma/gi, 'γ')     // gamma → γ
-        .replace(/delta/gi, 'δ')     // delta → δ
-        .replace(/theta/gi, 'θ')     // theta → θ
-        .replace(/pi/gi, 'π')        // pi → π
-        .replace(/lambda/gi, 'λ')    // lambda → λ
-        .replace(/mu/gi, 'μ')        // mu → μ
-        .replace(/sigma/gi, 'σ')     // sigma → σ
         // Mejorar notación de límites multivariados
         .replace(/\(x,y\)\s*→\s*\(0,0\)/g, '(x,y) → (0,0)')
         .replace(/\(x,y\)\s*->\s*\(0,0\)/g, '(x,y) → (0,0)')
@@ -46,19 +66,19 @@ export default function MathTextRenderer({ text, className = "" }: MathTextRende
         .trim()
       
       // Detectar si es una expresión matemática (contiene símbolos matemáticos)
-      const isMathExpression = /[∫√∞αβγδθπλμσ²³⁴⁵±→]|[\^\/\(\)\+\-\*=]|lím|límite/.test(processedLine)
+      const isMathExpression = /[∫√∞αβγδθπλμσ²³⁴⁵±→∑∏×÷·]|[\^\/\(\)\+\-\*=]|lím|límite|frac|cdot/.test(processedLine)
       
       if (isMathExpression) {
         return (
-          <div key={lineIndex} className="my-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border-l-4 border-blue-500">
-            <div className="font-mono text-lg text-blue-800 dark:text-blue-200 font-semibold">
+          <div key={lineIndex} className="my-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200 dark:border-blue-700">
+            <div className="font-mono text-lg text-blue-900 dark:text-blue-100 font-semibold text-center">
               {processedLine}
             </div>
           </div>
         )
       } else {
         return (
-          <div key={lineIndex} className="my-2 text-gray-700 dark:text-gray-300 leading-relaxed">
+          <div key={lineIndex} className="my-2 text-gray-700 dark:text-gray-300 leading-relaxed text-base">
             {processedLine}
           </div>
         )

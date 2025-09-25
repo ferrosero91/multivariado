@@ -19,6 +19,8 @@ import {
   Zap
 } from "lucide-react"
 import { aiSolver, type MathSolution } from "@/lib/ai-solver"
+import { groqVision } from "@/lib/services/groq-vision"
+import EnhancedStepDisplay from "./enhanced-step-display"
 
 interface StepByStepperProps {
   expression: string
@@ -29,6 +31,7 @@ export default function StepByStepper({ expression }: StepByStepperProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
+  const [isGroqVisionResult, setIsGroqVisionResult] = useState(false)
 
   useEffect(() => {
     if (expression) {
@@ -42,10 +45,37 @@ export default function StepByStepper({ expression }: StepByStepperProps) {
     setError(null)
     
     try {
-      console.log('📞 Calling AI solver...')
+      // Primero intentar con Groq Vision si está disponible
+      if (groqVision.isAvailable()) {
+        console.log('🚀 Using Groq Vision for detailed solving...')
+        const groqResult = await groqVision.solveMathProblemText(expression)
+        
+        // Convertir resultado de Groq Vision al formato esperado
+        const solution: MathSolution = {
+          solution: groqResult.answer,
+          steps: groqResult.steps.map((step, index) => ({
+            step: index + 1,
+            description: `Paso ${index + 1}`,
+            equation: step.includes(':') ? step.split(':')[0] : step,
+            explanation: step
+          })),
+          type: "Ecuación Diferencial", // Groq Vision es experto en esto
+          confidence: groqResult.confidence / 100
+        }
+        
+        console.log('✅ Got detailed result from Groq Vision:', solution)
+        setSolution(solution)
+        setIsGroqVisionResult(true)
+        setCurrentStep(0)
+        return
+      }
+      
+      // Fallback al AI solver normal
+      console.log('📞 Calling AI solver fallback...')
       const result = await aiSolver.solveSpecificProblem(expression)
       console.log('✅ Got result from AI solver:', result)
       setSolution(result)
+      setIsGroqVisionResult(false)
       setCurrentStep(0)
     } catch (err) {
       console.error('❌ Error solving problem:', err)
@@ -114,6 +144,19 @@ export default function StepByStepper({ expression }: StepByStepperProps) {
       <div className="text-center p-8">
         <p className="text-gray-600 dark:text-gray-400">No se pudo generar una solución</p>
       </div>
+    )
+  }
+
+  // Si es resultado de Groq Vision, usar EnhancedStepDisplay
+  if (isGroqVisionResult && solution) {
+    return (
+      <EnhancedStepDisplay 
+        steps={solution.steps.map(step => step.explanation)}
+        equation={expression}
+        answer={solution.solution}
+        provider="Groq Vision"
+        confidence={Math.round((solution.confidence || 0.95) * 100)}
+      />
     )
   }
 

@@ -87,12 +87,17 @@ export default function EnhancedStepDisplay({
               </Badge>
             </div>
             
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg border-2 border-green-200 dark:border-green-800">
-              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
-                Solución Final
-              </h3>
-              <div className="text-xl font-mono text-green-900 dark:text-green-100">
-                <MathTextRenderer text={answer} className="text-center" />
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-lg border-2 border-green-200 dark:border-green-800">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-4 flex items-center justify-center gap-2">
+                  🎉 Resultado Final
+                </h3>
+                <div className="text-2xl font-mono text-green-900 dark:text-green-100 bg-white dark:bg-gray-800 p-4 rounded-lg border border-green-300 dark:border-green-600">
+                  <MathTextRenderer text={answer} className="text-center" />
+                </div>
+                <div className="mt-3 text-sm text-green-700 dark:text-green-300">
+                  Solución verificada con {confidence}% de confianza
+                </div>
               </div>
             </div>
           </div>

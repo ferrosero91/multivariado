@@ -1,5 +1,5 @@
 // Servicio de visión con Groq para reconocimiento de ejercicios matemáticos
-// Basado en el script Python proporcionado
+// IMPLEMENTACIÓN EXACTA del script Python - SIN MODIFICACIONES
 
 import { getGroqApiKey, envManager } from '@/lib/config/env'
 
@@ -28,31 +28,24 @@ export class GroqVisionService {
   }
 
   private loadApiKey() {
-    // Estrategia múltiple para cargar la API key
     this.apiKey = 
       process.env.NEXT_PUBLIC_GROQ_API_KEY ||
       getGroqApiKey() ||
       null
   }
 
-  /**
-   * Configura la API key manualmente (útil para debugging)
-   */
   public setApiKey(apiKey: string) {
     this.apiKey = apiKey
     console.log('🔑 API Key configurada manualmente')
   }
 
-  /**
-   * Fuerza la recarga de la API key desde las variables de entorno
-   */
   public reloadApiKey() {
     envManager.reloadConfig()
     this.loadApiKey()
   }
 
   /**
-   * Extrae y resuelve ejercicios matemáticos de una imagen usando Groq Vision
+   * IMPLEMENTACIÓN EXACTA del script Python
    */
   async extractMathFromImage(imageData: string | File): Promise<MathExtractionResult> {
     if (!this.apiKey) {
@@ -60,55 +53,23 @@ export class GroqVisionService {
     }
 
     try {
-      // Convertir imagen a base64 data URI
       const dataUri = await this.convertToDataUri(imageData)
       
-      // Crear mensajes para el modelo (igual que en Python)
+      // Mensajes EXACTOS del script Python
       const messages = [
         {
           role: "system",
-          content: `Eres un experto profesor de matemáticas que extrae y resuelve ejercicios de imágenes con explicaciones detalladas.
-
-IMPORTANTE: Devuelve SOLO un JSON válido con estos campos exactos:
-{
-  "extracted_text": "texto tal cual extraído de la imagen",
-  "extracted_equation": "ecuación matemática exacta y limpia",
-  "solution_steps": ["paso detallado 1", "paso detallado 2", "..."],
-  "final_answer": "resultado final completo"
-}
-
-REGLAS PARA SOLUTION_STEPS:
-- Cada paso debe ser una explicación completa y detallada en español
-- Incluir el razonamiento matemático detrás de cada operación
-- Mostrar transformaciones algebraicas paso a paso de forma clara
-- Para ecuaciones diferenciales: explicar el método, factor integrante, etc.
-- Para derivadas: mostrar reglas aplicadas y simplificaciones
-- Para integrales: explicar técnicas de integración usadas
-- Para límites multivariados: explicar aproximaciones por diferentes trayectorias, coordenadas polares, etc.
-- Para límites: verificar continuidad, indeterminaciones, y técnicas de resolución
-- Mínimo 5-8 pasos para problemas complejos
-- Usar terminología matemática precisa pero accesible
-- Formatear expresiones matemáticas de forma legible (usar sqrt() para raíces, ^ para exponentes)
-- Separar claramente las operaciones matemáticas de las explicaciones textuales
-- Incluir la expresión matemática en líneas separadas para mejor legibilidad
-- Identificar correctamente el tipo de problema (integral, derivada, límite, límite multivariado, etc.)
-- Ejemplo formato: "Identificamos que es un límite multivariado:\nlim(x,y)→(0,0) f(x,y)\nVerificamos por diferentes trayectorias."
-
-REGLAS GENERALES:
-- extracted_equation debe ser matemáticamente válida y legible
-- final_answer debe incluir constantes de integración si aplica
-- solution_steps debe tener explicaciones pedagógicas claras y bien formateadas
-- Si hay múltiples ecuaciones, procesarlas por separado`
+          content: "Devuelve SOLO un JSON válido con los siguientes campos:\n{\n  \"extracted_text\": \"texto tal cual extraído\",\n  \"extracted_equation\": \"ecuación matemática exacta\",\n  \"solution_steps\": [\"paso1\", \"paso2\", ...],\n  \"final_answer\": \"resultado final\"\n}"
         },
         {
           role: "user",
           content: [
             {
-              type: "text",
-              text: "Extrae el ejercicio de la imagen y resuélvelo paso a paso con explicaciones detalladas."
+              type: "text", 
+              text: "Extrae el ejercicio de la imagen y resuélvelo paso a paso."
             },
             {
-              type: "image_url",
+              type: "image_url", 
               image_url: {
                 url: dataUri
               }
@@ -127,7 +88,7 @@ REGLAS GENERALES:
           model: "meta-llama/llama-4-scout-17b-16e-instruct",
           messages: messages,
           temperature: 0,
-          response_format: { type: "json_object" }
+          response_format: { type: "json_object" } // 🔑 fuerza JSON
         })
       })
 
@@ -138,26 +99,32 @@ REGLAS GENERALES:
       const data = await response.json()
       const content = data.choices[0].message.content
 
-      // Parsear respuesta JSON
+      console.log('\n=== JSON DEL MODELO ===\n')
+      console.log(content)
+
+      // Intentamos decodificar a dict (igual que Python)
       const parsed: GroqVisionResponse = JSON.parse(content)
+      
+      console.log('\n=== Ecuación extraída ===')
+      console.log(parsed.extracted_equation || "❌ No encontrada")
 
       return {
         text: parsed.extracted_text || "Texto no extraído",
         equation: parsed.extracted_equation || "Ecuación no encontrada",
         steps: parsed.solution_steps || ["No se pudieron generar pasos"],
         answer: parsed.final_answer || "Respuesta no disponible",
-        confidence: 95, // Alta confianza para Groq Vision
+        confidence: 95,
         provider: "Groq Vision"
       }
 
     } catch (error) {
-      console.error('Error en Groq Vision:', error)
+      console.error('❌ Error al llamar a la API:', error)
       throw new Error(`Error procesando imagen: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     }
   }
 
   /**
-   * Resuelve problemas matemáticos de texto usando Groq
+   * IMPLEMENTACIÓN EXACTA del script Python para texto
    */
   async solveMathProblemText(problem: string): Promise<MathExtractionResult> {
     if (!this.apiKey) {
@@ -165,32 +132,15 @@ REGLAS GENERALES:
     }
 
     try {
+      // Mensajes EXACTOS del script Python
       const messages = [
         {
           role: "system",
-          content: `Eres un experto profesor de matemáticas que resuelve problemas matemáticos con explicaciones detalladas.
-
-IMPORTANTE: Devuelve SOLO un JSON válido con estos campos exactos:
-{
-  "extracted_text": "problema tal cual proporcionado",
-  "extracted_equation": "ecuación matemática principal",
-  "solution_steps": ["paso detallado 1", "paso detallado 2", "..."],
-  "final_answer": "resultado final completo"
-}
-
-REGLAS PARA SOLUTION_STEPS:
-- Cada paso debe ser una explicación completa y detallada
-- Incluir el razonamiento matemático detrás de cada operación
-- Mostrar transformaciones algebraicas paso a paso
-- Para ecuaciones diferenciales: explicar el método, factor integrante, etc.
-- Para derivadas: mostrar reglas aplicadas y simplificaciones
-- Para integrales: explicar técnicas de integración usadas
-- Mínimo 5-8 pasos para problemas complejos
-- Usar terminología matemática precisa`
+          content: "Devuelve SOLO un JSON válido con los siguientes campos:\n{\n  \"extracted_text\": \"texto tal cual extraído\",\n  \"extracted_equation\": \"ecuación matemática exacta\",\n  \"solution_steps\": [\"paso1\", \"paso2\", ...],\n  \"final_answer\": \"resultado final\"\n}"
         },
         {
           role: "user",
-          content: `Resuelve este problema matemático paso a paso con explicaciones detalladas: ${problem}`
+          content: `Extrae el ejercicio de la imagen y resuélvelo paso a paso. Problema: ${problem}`
         }
       ]
 
@@ -204,7 +154,7 @@ REGLAS PARA SOLUTION_STEPS:
           model: "meta-llama/llama-4-scout-17b-16e-instruct",
           messages: messages,
           temperature: 0,
-          response_format: { type: "json_object" }
+          response_format: { type: "json_object" } // 🔑 fuerza JSON
         })
       })
 
@@ -215,7 +165,10 @@ REGLAS PARA SOLUTION_STEPS:
       const data = await response.json()
       const content = data.choices[0].message.content
 
-      // Parsear respuesta JSON
+      console.log('\n=== JSON DEL MODELO ===\n')
+      console.log(content)
+
+      // Intentamos decodificar a dict (igual que Python)
       const parsed: GroqVisionResponse = JSON.parse(content)
 
       return {
@@ -228,14 +181,11 @@ REGLAS PARA SOLUTION_STEPS:
       }
 
     } catch (error) {
-      console.error('Error en Groq text solving:', error)
+      console.error('❌ Error al llamar a la API:', error)
       throw new Error(`Error resolviendo problema: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     }
   }
 
-  /**
-   * Convierte imagen a data URI base64
-   */
   private async convertToDataUri(imageData: string | File): Promise<string> {
     if (typeof imageData === 'string') {
       return imageData
@@ -249,22 +199,13 @@ REGLAS PARA SOLUTION_STEPS:
     })
   }
 
-  /**
-   * Verifica si el servicio está disponible
-   */
   isAvailable(): boolean {
-    // Si no hay API key, intentar recargarla
     if (!this.apiKey) {
       this.loadApiKey()
     }
-    
-    
     return !!this.apiKey
   }
 
-  /**
-   * Test de conectividad
-   */
   async testConnection(): Promise<boolean> {
     if (!this.apiKey) {
       return false
@@ -283,5 +224,4 @@ REGLAS PARA SOLUTION_STEPS:
   }
 }
 
-// Instancia singleton
 export const groqVision = new GroqVisionService()

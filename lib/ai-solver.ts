@@ -252,27 +252,44 @@ class AIMathSolver {
   private async solveWithGroq(problem: string): Promise<MathSolution> {
     console.log('🚀 Starting Groq API call for:', problem)
 
-    const prompt = `Resuelve este problema matemático paso a paso en español:
+    const prompt = `Eres un experto profesor de matemáticas especializado en cálculo multivariado, derivadas, integrales y ecuaciones diferenciales.
 
 PROBLEMA: ${problem}
 
-INSTRUCCIONES ESPECÍFICAS:
-- Si es una expresión como "x^2 + 3x + 1" sin operador, asume que se pide la DERIVADA
-- Si contiene "d/dx", calcula la derivada
-- Si contiene "∫", calcula la integral
-- Si contiene "=", resuelve la ecuación
-- Si contiene "lim", calcula el límite
+INSTRUCCIONES CRÍTICAS:
+🚨 ECUACIONES DIFERENCIALES: Si ves "dy" y "dx" es una ECUACIÓN DIFERENCIAL
+- Para 2x dy = (x + y) dx: separar variables o usar factor integrante
+- NO solo dividir algebraicamente
 
-Responde SOLO con un JSON válido en este formato exacto:
+🚨 LÍMITES MULTIVARIADOS: Si ves lim con (x,y) → (0,0)
+- NUNCA apliques L'Hôpital a límites multivariados
+- DEBES verificar múltiples trayectorias
+- Si diferentes trayectorias → NO EXISTE
+
+DETECCIÓN DE TIPOS:
+- "dy/dx" o "dy" y "dx" → Ecuación Diferencial
+- "d/dx" → Derivada
+- "∫" → Integral
+- "lim(x,y)" → Límite Multivariado
+- "x^2 + 3x" sin operador → Derivada
+- "=" con variables → Ecuación algebraica
+
+METODOLOGÍA PARA ECUACIONES DIFERENCIALES:
+1. Identificar tipo (separable, lineal, exacta)
+2. Aplicar método apropiado
+3. Integrar correctamente
+4. Incluir constante de integración
+
+Responde SOLO con JSON válido:
 {
-  "type": "tipo de problema (ej: Cálculo Diferencial, Cálculo Integral, Álgebra, etc.)",
-  "solution": "respuesta final clara y específica",
+  "type": "tipo correcto del problema",
+  "solution": "respuesta matemática final",
   "steps": [
     {
       "step": 1,
       "description": "nombre del paso",
-      "equation": "ecuación o expresión matemática",
-      "explanation": "explicación clara de qué se hace y por qué"
+      "equation": "ecuación matemática",
+      "explanation": "explicación detallada del método"
     }
   ]
 }
@@ -366,20 +383,28 @@ IMPORTANTE: Responde ÚNICAMENTE el JSON, sin texto adicional.`
   private async solveWithCohere(problem: string): Promise<MathSolution> {
     console.log('🔮 Using Cohere API')
     
-    const prompt = `Resuelve este problema matemático paso a paso en español:
+    const prompt = `Eres un experto profesor de matemáticas especializado en cálculo multivariado, derivadas, integrales y ecuaciones diferenciales.
 
 PROBLEMA: ${problem}
 
-INSTRUCCIONES:
-- Si es una expresión como "x^2 + 3x + 1" sin operador, asume que se pide la DERIVADA
-- Si contiene "d/dx", calcula la derivada
-- Si contiene "∫", calcula la integral
-- Si contiene "=", resuelve la ecuación
-- Si contiene "lim", calcula el límite
+INSTRUCCIONES CRÍTICAS:
+🚨 ECUACIONES DIFERENCIALES: Si ves "dy" y "dx" es una ECUACIÓN DIFERENCIAL
+- Para 2x dy = (x + y) dx: separar variables o usar factor integrante
+- NO solo dividir algebraicamente
 
-Responde con formato JSON:
+🚨 LÍMITES MULTIVARIADOS: Si ves lim con (x,y) → (0,0)
+- NUNCA apliques L'Hôpital a límites multivariados
+- DEBES verificar múltiples trayectorias
+
+TIPOS:
+- "dy" y "dx" → Ecuación Diferencial
+- "d/dx" → Derivada
+- "lim(x,y)" → Límite Multivariado
+- "x^2 + 3x" sin operador → Derivada
+
+Responde con JSON:
 {
-  "type": "tipo de problema",
+  "type": "tipo correcto",
   "solution": "respuesta final",
   "steps": [{"step": 1, "description": "paso", "equation": "ecuación", "explanation": "explicación"}]
 }`
@@ -457,27 +482,44 @@ Proporciona pasos detallados y la solución final.`
   private async solveWithOpenRouter(problem: string): Promise<MathSolution> {
     console.log('🌐 Using OpenRouter API')
     
-    const prompt = `Resuelve este problema matemático paso a paso en español:
+    const prompt = `Eres un experto profesor de matemáticas especializado en cálculo multivariado, derivadas, integrales y ecuaciones diferenciales.
 
 PROBLEMA: ${problem}
 
-INSTRUCCIONES ESPECÍFICAS:
-- Si es una expresión como "x^2 + 3x + 1" sin operador, asume que se pide la DERIVADA
-- Si contiene "d/dx", calcula la derivada
-- Si contiene "∫", calcula la integral
-- Si contiene "=", resuelve la ecuación
-- Si contiene "lim", calcula el límite
+INSTRUCCIONES CRÍTICAS:
+🚨 ECUACIONES DIFERENCIALES: Si ves "dy" y "dx" es una ECUACIÓN DIFERENCIAL
+- Para 2x dy = (x + y) dx: separar variables o usar factor integrante
+- NO solo dividir algebraicamente
 
-Responde SOLO con un JSON válido en este formato:
+🚨 LÍMITES MULTIVARIADOS: Si ves lim con (x,y) → (0,0)
+- NUNCA apliques L'Hôpital a límites multivariados
+- DEBES verificar múltiples trayectorias
+- Si diferentes trayectorias → NO EXISTE
+
+DETECCIÓN DE TIPOS:
+- "dy/dx" o "dy" y "dx" → Ecuación Diferencial
+- "d/dx" → Derivada
+- "∫" → Integral
+- "lim(x,y)" → Límite Multivariado
+- "x^2 + 3x" sin operador → Derivada
+- "=" con variables → Ecuación algebraica
+
+METODOLOGÍA PARA ECUACIONES DIFERENCIALES:
+1. Identificar tipo (separable, lineal, exacta)
+2. Aplicar método apropiado
+3. Integrar correctamente
+4. Incluir constante de integración
+
+Responde SOLO con JSON válido:
 {
-  "type": "tipo de problema",
-  "solution": "respuesta final clara",
+  "type": "tipo correcto del problema",
+  "solution": "respuesta matemática final",
   "steps": [
     {
       "step": 1,
       "description": "nombre del paso",
       "equation": "ecuación matemática",
-      "explanation": "explicación detallada"
+      "explanation": "explicación detallada del método"
     }
   ]
 }`
@@ -560,10 +602,24 @@ Responde SOLO con un JSON válido en este formato:
   private async solveWithHuggingFace(problem: string): Promise<MathSolution> {
     console.log('🤗 Using Hugging Face API')
     
-    const prompt = `Resuelve este problema matemático paso a paso en español: ${problem}
+    const prompt = `Eres un experto profesor de matemáticas. Resuelve paso a paso: ${problem}
 
-Si es una expresión como "x^2 + 3x + 1" sin operador, calcula la derivada.
-Proporciona pasos detallados y la solución final.`
+INSTRUCCIONES CRÍTICAS:
+🚨 ECUACIONES DIFERENCIALES: Si ves "dy" y "dx" es una ECUACIÓN DIFERENCIAL
+- Para 2x dy = (x + y) dx: separar variables o usar factor integrante
+- NO solo dividir algebraicamente
+
+🚨 LÍMITES MULTIVARIADOS: Si ves lim con (x,y) → (0,0)
+- NUNCA apliques L'Hôpital a límites multivariados
+- DEBES verificar múltiples trayectorias
+
+TIPOS:
+- "dy" y "dx" → Ecuación Diferencial
+- "d/dx" → Derivada  
+- "lim(x,y)" → Límite Multivariado
+- "x^2 + 3x" sin operador → Derivada
+
+Proporciona pasos detallados y solución final correcta.`
 
     // Lista de modelos gratuitos de Hugging Face
     const models = [
