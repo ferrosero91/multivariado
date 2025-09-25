@@ -25,7 +25,6 @@ import GeometryCalculator from "@/components/geometry-calculator"
 import StatisticsCalculator from "@/components/statistics-calculator"
 import AdvancedMathSearch from "@/components/advanced-math-search"
 import StepByStepper from "@/components/step-by-step-solver"
-import ApiStatus from "@/components/api-status"
 import AIStatusIndicator from "@/components/ai-status-indicator"
 import EnhancedMathOCR from "@/components/enhanced-math-ocr"
 import AIEnhancedOCR from "@/components/ai-enhanced-ocr"
@@ -346,10 +345,6 @@ export default function SymbolabInspiredApp() {
             </div>
           </div>
 
-          {/* Estado de APIs */}
-          <div className="mb-16">
-            <ApiStatus />
-          </div>
 
 
 
