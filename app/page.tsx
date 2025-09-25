@@ -30,6 +30,8 @@ import AIStatusIndicator from "@/components/ai-status-indicator"
 import EnhancedMathOCR from "@/components/enhanced-math-ocr"
 import AIEnhancedOCR from "@/components/ai-enhanced-ocr"
 import SmartPatternOCR from "@/components/smart-pattern-ocr"
+import GroqVisionOCR from "@/components/groq-vision-ocr"
+import GroqVisionSolution from "@/components/groq-vision-solution"
 
 
 export default function SymbolabInspiredApp() {
@@ -39,6 +41,9 @@ export default function SymbolabInspiredApp() {
   const [showEnhancedOCR, setShowEnhancedOCR] = useState(false)
   const [showAIEnhancedOCR, setShowAIEnhancedOCR] = useState(false)
   const [showSmartPatternOCR, setShowSmartPatternOCR] = useState(false)
+  const [showGroqVisionOCR, setShowGroqVisionOCR] = useState(false)
+  const [showGroqVisionSolution, setShowGroqVisionSolution] = useState(false)
+  const [groqVisionSolution, setGroqVisionSolution] = useState<{equation: string, steps: string[], answer: string} | null>(null)
   const [currentProblem, setCurrentProblem] = useState("")
 
   const calculatorSections = [
@@ -116,6 +121,16 @@ export default function SymbolabInspiredApp() {
     setCurrentProblem(problem)
     setShowStepSolver(true)
     console.log(`[v0] Solving problem: ${problem}`)
+  }
+
+  const handleGroqVisionSolution = (steps: string[], answer: string, equation?: string) => {
+    setGroqVisionSolution({
+      equation: equation || "",
+      steps,
+      answer
+    })
+    setShowGroqVisionSolution(true)
+    setShowGroqVisionOCR(false)
   }
 
   return (
@@ -362,14 +377,14 @@ export default function SymbolabInspiredApp() {
               <Button 
                 variant="ghost" 
                 className="h-auto p-3 sm:p-4 text-left hover:bg-accent border border-border rounded-lg transition-all duration-200"
-                onClick={() => setShowAIEnhancedOCR(true)}
+                onClick={() => setShowGroqVisionOCR(true)}
               >
                 <div>
                   <div className="font-medium text-foreground text-xs sm:text-sm flex items-center gap-1">
-                    OCR + IA Híbrido
-                    <span className="text-purple-600">✨</span>
+                    Reconocer Ejercicios
+                    <span className="text-purple-600">🤖</span>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">Máxima precisión con IA</div>
+                  <div className="text-xs text-muted-foreground mt-1">Groq Vision IA Avanzada</div>
                 </div>
               </Button>
             </div>
@@ -387,6 +402,36 @@ export default function SymbolabInspiredApp() {
             {renderActiveComponent()}
           </div>
         </main>
+      )}
+
+      {/* Modal de Groq Vision OCR */}
+      {showGroqVisionOCR && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <GroqVisionOCR
+              onEquationDetected={(equation, confidence) => {
+                setSearchQuery(equation)
+                setShowGroqVisionOCR(false)
+              }}
+              onSolutionFound={handleGroqVisionSolution}
+              onClose={() => setShowGroqVisionOCR(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Solución Groq Vision */}
+      {showGroqVisionSolution && groqVisionSolution && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <GroqVisionSolution
+              equation={groqVisionSolution.equation}
+              steps={groqVisionSolution.steps}
+              answer={groqVisionSolution.answer}
+              onClose={() => setShowGroqVisionSolution(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   )
