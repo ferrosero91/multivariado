@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, TrendingUp, Camera, Zap } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart3, TrendingUp, Camera, Zap, Activity } from "lucide-react"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ScatterChart, Scatter } from "recharts"
+import FunctionPlot2D from "./function-plot-2d"
 import { aiSolver } from "@/lib/ai-solver"
 import { groqVision } from "@/lib/services/groq-vision"
 import CameraUpload from "./camera-upload"
@@ -21,6 +22,9 @@ export default function StatisticsCalculator() {
   const [showCamera, setShowCamera] = useState(false)
   const [groqResult, setGroqResult] = useState<{steps: string[], answer: string} | null>(null)
   const [showEnhancedSteps, setShowEnhancedSteps] = useState(false)
+  const [chartType, setChartType] = useState<'line' | 'bar' | 'scatter'>('line')
+  const [showAdvancedGraph, setShowAdvancedGraph] = useState(false)
+  const [functionExpression, setFunctionExpression] = useState("x^2")
 
   const calculateStatistics = async (values: number[]) => {
     if (values.length === 0) return
@@ -189,6 +193,15 @@ export default function StatisticsCalculator() {
                 Ver Solución Detallada
               </Button>
             )}
+            
+            <Button
+              variant="outline"
+              onClick={() => setShowAdvancedGraph(!showAdvancedGraph)}
+              className="w-full"
+            >
+              <Activity className="h-4 w-4 mr-2" />
+              {showAdvancedGraph ? "Ocultar Graficador" : "Graficador Avanzado"}
+            </Button>
           </div>
 
           {data.length > 0 && (
@@ -288,6 +301,37 @@ export default function StatisticsCalculator() {
                   </CardContent>
                 </Card>
               )}
+            </div>
+          )}
+
+          {/* Graficador Avanzado */}
+          {showAdvancedGraph && (
+            <div className="mt-6 p-4 border rounded-lg">
+              <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Graficador de Funciones Matemáticas
+              </h4>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="function-input">Función a graficar</Label>
+                  <Textarea
+                    id="function-input"
+                    value={functionExpression}
+                    onChange={(e) => setFunctionExpression(e.target.value)}
+                    placeholder="Ej: x^2, sin(x), exp(-x^2), x^3-2*x+1"
+                    className="mt-2"
+                    rows={2}
+                  />
+                </div>
+
+                <FunctionPlot2D
+                  expression={functionExpression}
+                  title="Función Matemática"
+                  color="#8b5cf6"
+                  xRange={[-10, 10]}
+                />
+              </div>
             </div>
           )}
         </CardContent>

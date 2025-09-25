@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { TrendingUp, Target, Zap, Camera } from "lucide-react"
+import { TrendingUp, Target, Zap, Camera, BarChart3 } from "lucide-react"
 import FunctionPlot from "./function-plot"
+import FunctionPlot2D from "./function-plot-2d"
 import CameraUpload from "./camera-upload"
 import { MathEvaluator } from "./math-evaluator"
 import { aiSolver } from "@/lib/ai-solver"
@@ -30,6 +31,7 @@ export default function DifferentialCalculus() {
   const [aiSteps, setAiSteps] = useState<string[]>([])
   const [groqResult, setGroqResult] = useState<{steps: string[], answer: string} | null>(null)
   const [showEnhancedSteps, setShowEnhancedSteps] = useState(false)
+  const [useAdvancedGraph, setUseAdvancedGraph] = useState(false)
 
   const mathEvaluator = MathEvaluator.getInstance()
 
@@ -303,6 +305,13 @@ export default function DifferentialCalculus() {
               <Button variant="outline" onClick={calculateDomainRange}>
                 Dominio y Rango
               </Button>
+              <Button 
+                variant={useAdvancedGraph ? "default" : "outline"} 
+                onClick={() => setUseAdvancedGraph(!useAdvancedGraph)}
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                {useAdvancedGraph ? "Gráfica Básica" : "Gráfica Avanzada"}
+              </Button>
               <Button
                 variant="secondary"
                 onClick={() => setShowCamera(!showCamera)}
@@ -392,15 +401,24 @@ export default function DifferentialCalculus() {
         />
       )}
 
-      <FunctionPlot
-        expression={functionInput}
-        derivative={derivative}
-        title={`Visualización de f(x) = ${functionInput}`}
-        showDerivative={!!derivative}
-        criticalPoints={criticalPoints}
-        tangentLine={tangentLine}
-        xRange={[-5, 5]}
-      />
+      {useAdvancedGraph ? (
+        <FunctionPlot2D
+          expression={functionInput}
+          title={`Gráfica Avanzada: f(x) = ${functionInput}`}
+          color="#2563eb"
+          xRange={[-10, 10]}
+        />
+      ) : (
+        <FunctionPlot
+          expression={functionInput}
+          derivative={derivative}
+          title={`Visualización de f(x) = ${functionInput}`}
+          showDerivative={!!derivative}
+          criticalPoints={criticalPoints}
+          tangentLine={tangentLine}
+          xRange={[-5, 5]}
+        />
+      )}
 
       {/* Modal de Solución Detallada con Groq Vision */}
       {showEnhancedSteps && groqResult && (

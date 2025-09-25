@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Triangle, Square, Circle, Calculator, Camera, Zap } from "lucide-react"
+import { Triangle, Square, Circle, Calculator, Camera, Zap, BarChart3 } from "lucide-react"
 import { aiSolver } from "@/lib/ai-solver"
 import { groqVision } from "@/lib/services/groq-vision"
 import CameraUpload from "./camera-upload"
 import EnhancedStepDisplay from "./enhanced-step-display"
+import FunctionPlot2D from "./function-plot-2d"
 
 export default function GeometryCalculator() {
   const [triangleResults, setTriangleResults] = useState<any>(null)
@@ -20,6 +21,8 @@ export default function GeometryCalculator() {
   const [showCamera, setShowCamera] = useState(false)
   const [groqResult, setGroqResult] = useState<{steps: string[], answer: string} | null>(null)
   const [showEnhancedSteps, setShowEnhancedSteps] = useState(false)
+  const [showGraph, setShowGraph] = useState(false)
+  const [graphExpression, setGraphExpression] = useState("x^2")
 
   const calculateTriangle = async (a: number, b: number, c: number) => {
     try {
@@ -103,7 +106,7 @@ export default function GeometryCalculator() {
       </div>
 
       <Tabs defaultValue="triangle" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="triangle" className="flex items-center gap-2">
             <Triangle className="h-4 w-4" />
             Triángulo
@@ -115,6 +118,10 @@ export default function GeometryCalculator() {
           <TabsTrigger value="rectangle" className="flex items-center gap-2">
             <Square className="h-4 w-4" />
             Rectángulo
+          </TabsTrigger>
+          <TabsTrigger value="graph" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Gráficas
           </TabsTrigger>
         </TabsList>
 
@@ -320,6 +327,71 @@ export default function GeometryCalculator() {
                     </div>
                   </div>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="graph" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Graficador de Funciones Geométricas
+              </CardTitle>
+              <CardDescription>
+                Grafica funciones matemáticas con estilo GeoGebra
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="graph-function">Función a graficar</Label>
+                <Input
+                  id="graph-function"
+                  value={graphExpression}
+                  onChange={(e) => setGraphExpression(e.target.value)}
+                  placeholder="Ej: x^2, sin(x), x^3-2*x"
+                  className="mt-2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Button
+                  onClick={() => setShowGraph(true)}
+                  className="w-full"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Graficar Función
+                </Button>
+                
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowCamera(!showCamera)}
+                  className="w-full"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  {showCamera ? "Ocultar Cámara" : "Usar Cámara"}
+                </Button>
+                
+                {groqResult && (
+                  <Button
+                    variant="default"
+                    onClick={() => setShowEnhancedSteps(true)}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Ver Solución Detallada
+                  </Button>
+                )}
+              </div>
+
+              {/* Gráfica */}
+              {showGraph && (
+                <FunctionPlot2D
+                  expression={graphExpression}
+                  title="Gráfica Geométrica"
+                  color="#2563eb"
+                />
               )}
             </CardContent>
           </Card>

@@ -59,7 +59,7 @@ function Surface3D({
   const { geometry, minZ, maxZ } = useMemo(() => {
     console.log("[v0] Generating 3D surface geometry for:", expression)
 
-    const gridSize = 50
+    const gridSize = 100
     const stepX = (xRange[1] - xRange[0]) / (gridSize - 1)
     const stepY = (yRange[1] - yRange[0]) / (gridSize - 1)
 
@@ -92,11 +92,30 @@ function Surface3D({
 
     const zRange = maxZ - minZ
 
+    // Colores estilo GeoGebra - gradiente azul a rojo
     for (let i = 0; i < vertices.length; i += 3) {
       const z = vertices[i + 1]
       const normalizedZ = (z - minZ) / zRange
       const color = new THREE.Color()
-      color.setHSL(0.7 - normalizedZ * 0.7, 0.8, 0.5 + normalizedZ * 0.3)
+      
+      // Gradiente estilo GeoGebra: azul (bajo) -> verde -> amarillo -> rojo (alto)
+      if (normalizedZ < 0.25) {
+        // Azul a cyan
+        color.setRGB(0, normalizedZ * 4, 1)
+      } else if (normalizedZ < 0.5) {
+        // Cyan a verde
+        const t = (normalizedZ - 0.25) * 4
+        color.setRGB(0, 1, 1 - t)
+      } else if (normalizedZ < 0.75) {
+        // Verde a amarillo
+        const t = (normalizedZ - 0.5) * 4
+        color.setRGB(t, 1, 0)
+      } else {
+        // Amarillo a rojo
+        const t = (normalizedZ - 0.75) * 4
+        color.setRGB(1, 1 - t, 0)
+      }
+      
       colors.push(color.r, color.g, color.b)
     }
 
@@ -125,48 +144,66 @@ function Surface3D({
   }, [expression, xRange, yRange])
 
   return (
-    <mesh geometry={geometry} castShadow receiveShadow>
-      <meshPhongMaterial 
-        vertexColors 
-        side={THREE.DoubleSide} 
-        shininess={30}
-        transparent={false}
-        opacity={0.9}
-        wireframe={false}
-      />
-    </mesh>
+    <group>
+      {/* Superficie principal estilo GeoGebra */}
+      <mesh geometry={geometry} castShadow receiveShadow>
+        <meshLambertMaterial 
+          vertexColors 
+          side={THREE.DoubleSide}
+          transparent={true}
+          opacity={0.9}
+          wireframe={false}
+        />
+      </mesh>
+      
+      {/* Wireframe sutil para mejor definición */}
+      <mesh geometry={geometry}>
+        <meshBasicMaterial 
+          color="#333333"
+          wireframe={true}
+          transparent={true}
+          opacity={0.15}
+        />
+      </mesh>
+    </group>
   )
 }
 
 function Axes() {
   return (
     <group>
-      {/* Eje X - Rojo */}
-      <mesh position={[2, 0, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 4]} />
-        <meshBasicMaterial color="red" />
+      {/* Eje X - Rojo estilo GeoGebra */}
+      <mesh position={[0, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.03, 0.03, 10]} />
+        <meshBasicMaterial color="#ff4444" />
       </mesh>
-      <Text position={[4.5, 0, 0]} fontSize={0.3} color="red">
+      <Text position={[5.2, 0.2, 0]} fontSize={0.4} color="#ff4444">
         X
       </Text>
 
-      {/* Eje Y - Verde */}
-      <mesh position={[0, 2, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 4]} />
-        <meshBasicMaterial color="green" />
+      {/* Eje Y - Verde estilo GeoGebra */}
+      <mesh position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 10]} />
+        <meshBasicMaterial color="#44ff44" />
       </mesh>
-      <Text position={[0, 4.5, 0]} fontSize={0.3} color="green">
+      <Text position={[0.2, 5.2, 0]} fontSize={0.4} color="#44ff44">
+        Y
+      </Text>
+
+      {/* Eje Z - Azul estilo GeoGebra */}
+      <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 10]} />
+        <meshBasicMaterial color="#4444ff" />
+      </mesh>
+      <Text position={[0.2, 0, 5.2]} fontSize={0.4} color="#4444ff">
         Z
       </Text>
 
-      {/* Eje Z - Azul */}
-      <mesh position={[0, 0, 2]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 4]} />
-        <meshBasicMaterial color="blue" />
-      </mesh>
-      <Text position={[0, 0, 4.5]} fontSize={0.3} color="blue">
-        Y
-      </Text>
+      {/* Rejilla del plano XY estilo GeoGebra */}
+      <gridHelper 
+        args={[10, 20, "#888888", "#dddddd"]} 
+        position={[0, -0.1, 0]}
+      />
     </group>
   )
 }
@@ -228,22 +265,22 @@ export default function SurfacePlot3D({
                 </mesh>
               }
             >
-              {/* Iluminación mejorada con sombras */}
-              <ambientLight intensity={0.3} />
+              {/* Iluminación estilo GeoGebra */}
+              <ambientLight intensity={0.6} />
               <directionalLight 
-                position={[10, 10, 5]} 
-                intensity={1.0}
+                position={[10, 10, 10]} 
+                intensity={0.8}
                 castShadow
-                shadow-mapSize-width={2048}
-                shadow-mapSize-height={2048}
+                shadow-mapSize-width={1024}
+                shadow-mapSize-height={1024}
                 shadow-camera-far={50}
-                shadow-camera-left={-10}
-                shadow-camera-right={10}
-                shadow-camera-top={10}
-                shadow-camera-bottom={-10}
+                shadow-camera-left={-15}
+                shadow-camera-right={15}
+                shadow-camera-top={15}
+                shadow-camera-bottom={-15}
               />
-              <pointLight position={[-10, -10, -5]} intensity={0.4} />
-              <hemisphereLight intensity={0.2} />
+              <directionalLight position={[-5, 5, 5]} intensity={0.3} />
+              <hemisphereLight intensity={0.4} groundColor="#f0f0f0" />
 
               {/* Entorno */}
               <Environment preset="studio" />
