@@ -18,25 +18,44 @@ interface SurfacePlot3DProps {
 
 const evaluateExpression = (expr: string, x: number, y: number): number => {
   try {
-    const processedExpr = expr
-      .toLowerCase()
-      .replace(/\s+/g, "")
+    let processedExpr = expr.toLowerCase().replace(/\s+/g, "")
+    
+    // Detectar y convertir ecuaciones implícitas a explícitas
+    if (processedExpr.includes('=')) {
+      // Para ecuaciones como x^2 + y^2 - z = 0, resolver para z
+      if (processedExpr.includes('-z=0') || processedExpr.includes('-z=')) {
+        processedExpr = processedExpr.replace(/-z=0?/g, '').replace(/=.*$/g, '')
+      } else if (processedExpr.includes('z=')) {
+        // Para ecuaciones como z = x^2 + y^2
+        processedExpr = processedExpr.split('z=')[1] || processedExpr.split('=')[1]
+      } else if (processedExpr.includes('=z')) {
+        // Para ecuaciones como x^2 + y^2 = z
+        processedExpr = processedExpr.split('=z')[0]
+      }
+    }
+    
+    // Reemplazar variables y funciones
+    processedExpr = processedExpr
       .replace(/\bx\b/g, `(${x})`)
       .replace(/\by\b/g, `(${y})`)
       .replace(/\^/g, "**")
-      .replace(/sin/g, "Math.sin")
-      .replace(/cos/g, "Math.cos")
-      .replace(/tan/g, "Math.tan")
-      .replace(/ln/g, "Math.log")
-      .replace(/log/g, "Math.log10")
-      .replace(/sqrt/g, "Math.sqrt")
-      .replace(/pi/g, "Math.PI")
-      .replace(/e\b/g, "Math.E")
-      .replace(/abs/g, "Math.abs")
-      .replace(/exp/g, "Math.exp")
-      .replace(/floor/g, "Math.floor")
-      .replace(/ceil/g, "Math.ceil")
-      .replace(/round/g, "Math.round")
+      .replace(/sin\(/g, "Math.sin(")
+      .replace(/cos\(/g, "Math.cos(")
+      .replace(/tan\(/g, "Math.tan(")
+      .replace(/ln\(/g, "Math.log(")
+      .replace(/log\(/g, "Math.log10(")
+      .replace(/sqrt\(/g, "Math.sqrt(")
+      .replace(/\bpi\b/g, "Math.PI")
+      .replace(/\be\b/g, "Math.E")
+      .replace(/abs\(/g, "Math.abs(")
+      .replace(/exp\(/g, "Math.exp(")
+      .replace(/floor\(/g, "Math.floor(")
+      .replace(/ceil\(/g, "Math.ceil(")
+      .replace(/round\(/g, "Math.round(")
+      // Multiplicación implícita
+      .replace(/(\d)([a-zA-Z])/g, '$1*$2')
+      .replace(/([a-zA-Z])(\d)/g, '$1*$2')
+      .replace(/\)\(/g, ')*(')
 
     const result = Function(`"use strict"; return (${processedExpr})`)()
 
@@ -47,6 +66,7 @@ const evaluateExpression = (expr: string, x: number, y: number): number => {
     // Limitar valores extremos
     return Math.max(-100, Math.min(100, result))
   } catch (error) {
+    console.warn('Error evaluating expression:', expr, error)
     return 0
   }
 }
@@ -249,7 +269,7 @@ export default function SurfacePlot3D({
         </div>
 
         {/* Vista 3D con React Three Fiber */}
-        <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
+        <div className="w-full h-[600px] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
           <Canvas 
             camera={{ position: [8, 8, 8], fov: 60 }} 
             style={{ width: "100%", height: "100%" }}
