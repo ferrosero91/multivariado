@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Search, Camera, Upload, Mic, Zap, BookOpen, X, CheckCircle, Loader2, Volume2, Eye } from "lucide-react"
 import GroqVisionOCR from "./groq-vision-ocr"
+import MathKeyboard from "./math-keyboard"
 
 interface AdvancedMathSearchProps {
   onSearch: (query: string, type: "text" | "image" | "voice") => void
@@ -23,6 +24,7 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
   const [ocrResult, setOcrResult] = useState("")
   const [confidence, setConfidence] = useState(0)
   const [showOCRScanner, setShowOCRScanner] = useState(false)
+  const [showMathKeyboard, setShowMathKeyboard] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -254,6 +256,26 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
     }, 100)
   }
 
+  const handleMathSymbolClick = (symbol: string) => {
+    // Insertar el símbolo en la posición actual del cursor
+    const input = document.querySelector('input[placeholder="d/dx (x^2 + 3x + 1)"]') as HTMLInputElement
+    if (input) {
+      const start = input.selectionStart || searchQuery.length
+      const end = input.selectionEnd || searchQuery.length
+      const newValue = searchQuery.substring(0, start) + symbol + searchQuery.substring(end)
+      setSearchQuery(newValue)
+      
+      // Posicionar el cursor después del símbolo insertado
+      setTimeout(() => {
+        input.focus()
+        input.setSelectionRange(start + symbol.length, start + symbol.length)
+      }, 10)
+    } else {
+      // Fallback: agregar al final
+      setSearchQuery(prev => prev + symbol)
+    }
+  }
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* Buscador principal estilo Symbolab */}
@@ -367,6 +389,13 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
             </div>
           </div>
         </div>
+
+        {/* Teclado matemático */}
+        <MathKeyboard
+          onSymbolClick={handleMathSymbolClick}
+          isVisible={showMathKeyboard}
+          onToggle={() => setShowMathKeyboard(!showMathKeyboard)}
+        />
       </div>
 
       {/* Modal de cámara */}
