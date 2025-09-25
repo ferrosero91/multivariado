@@ -78,19 +78,26 @@ IMPORTANTE: Devuelve SOLO un JSON válido con estos campos exactos:
 }
 
 REGLAS PARA SOLUTION_STEPS:
-- Cada paso debe ser una explicación completa y detallada
+- Cada paso debe ser una explicación completa y detallada en español
 - Incluir el razonamiento matemático detrás de cada operación
-- Mostrar transformaciones algebraicas paso a paso
+- Mostrar transformaciones algebraicas paso a paso de forma clara
 - Para ecuaciones diferenciales: explicar el método, factor integrante, etc.
 - Para derivadas: mostrar reglas aplicadas y simplificaciones
 - Para integrales: explicar técnicas de integración usadas
+- Para límites multivariados: explicar aproximaciones por diferentes trayectorias, coordenadas polares, etc.
+- Para límites: verificar continuidad, indeterminaciones, y técnicas de resolución
 - Mínimo 5-8 pasos para problemas complejos
-- Usar terminología matemática precisa
+- Usar terminología matemática precisa pero accesible
+- Formatear expresiones matemáticas de forma legible (usar sqrt() para raíces, ^ para exponentes)
+- Separar claramente las operaciones matemáticas de las explicaciones textuales
+- Incluir la expresión matemática en líneas separadas para mejor legibilidad
+- Identificar correctamente el tipo de problema (integral, derivada, límite, límite multivariado, etc.)
+- Ejemplo formato: "Identificamos que es un límite multivariado:\nlim(x,y)→(0,0) f(x,y)\nVerificamos por diferentes trayectorias."
 
 REGLAS GENERALES:
-- extracted_equation debe ser matemáticamente válida
+- extracted_equation debe ser matemáticamente válida y legible
 - final_answer debe incluir constantes de integración si aplica
-- solution_steps debe tener explicaciones pedagógicas claras
+- solution_steps debe tener explicaciones pedagógicas claras y bien formateadas
 - Si hay múltiples ecuaciones, procesarlas por separado`
         },
         {
