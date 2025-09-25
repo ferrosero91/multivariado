@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Search, Camera, Upload, Mic, Zap, BookOpen, X, CheckCircle, Loader2, Volume2, Eye } from "lucide-react"
-import MathOCRScanner from "./math-ocr-scanner"
+import GroqVisionOCR from "./groq-vision-ocr"
 
 interface AdvancedMathSearchProps {
   onSearch: (query: string, type: "text" | "image" | "voice") => void
@@ -435,12 +435,16 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
         </Card>
       )}
 
-      {/* Scanner OCR */}
+      {/* Scanner OCR con Groq Vision */}
       {showOCRScanner && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-background rounded-lg max-w-6xl w-full max-h-[95vh] overflow-auto">
-            <MathOCRScanner
+            <GroqVisionOCR
               onEquationDetected={handleEquationDetected}
+              onSolutionFound={(steps, answer, equation) => {
+                // Opcional: manejar la solución completa si se desea
+                console.log('Solución completa de Groq Vision:', { steps, answer, equation })
+              }}
               onClose={() => setShowOCRScanner(false)}
             />
           </div>
