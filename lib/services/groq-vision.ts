@@ -28,8 +28,11 @@ export class GroqVisionService {
   }
 
   private loadApiKey() {
-    // Usar el administrador de entorno centralizado
-    this.apiKey = getGroqApiKey()
+    // Estrategia múltiple para cargar la API key
+    this.apiKey = 
+      process.env.NEXT_PUBLIC_GROQ_API_KEY ||
+      getGroqApiKey() ||
+      null
   }
 
   /**
@@ -247,6 +250,8 @@ REGLAS PARA SOLUTION_STEPS:
     if (!this.apiKey) {
       this.loadApiKey()
     }
+    
+    
     return !!this.apiKey
   }
 
