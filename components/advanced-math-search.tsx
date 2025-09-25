@@ -288,6 +288,7 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
               placeholder="d/dx (x^2 + 3x + 1)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => !showMathKeyboard && setShowMathKeyboard(true)}
               className="pl-10 sm:pl-12 pr-20 sm:pr-24 py-3 sm:py-4 text-base sm:text-lg border-0 bg-gray-50 dark:bg-slate-700 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-600 transition-all text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
               onKeyPress={(e) => e.key === 'Enter' && handleSolveEquation()}
             />
@@ -340,6 +341,14 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
             </div>
           </div>
 
+          {/* Teclado matemático integrado */}
+          <MathKeyboard
+            onSymbolClick={handleMathSymbolClick}
+            isVisible={showMathKeyboard}
+            onToggle={() => setShowMathKeyboard(!showMathKeyboard)}
+            integrated={true}
+          />
+
           {/* Botones de acción principales */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-4">
             <Button
@@ -389,13 +398,6 @@ export default function AdvancedMathSearch({ onSearch, onSolve }: AdvancedMathSe
             </div>
           </div>
         </div>
-
-        {/* Teclado matemático */}
-        <MathKeyboard
-          onSymbolClick={handleMathSymbolClick}
-          isVisible={showMathKeyboard}
-          onToggle={() => setShowMathKeyboard(!showMathKeyboard)}
-        />
       </div>
 
       {/* Modal de cámara */}

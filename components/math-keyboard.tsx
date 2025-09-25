@@ -18,6 +18,7 @@ interface MathKeyboardProps {
   onSymbolClick: (symbol: string) => void
   isVisible: boolean
   onToggle: () => void
+  integrated?: boolean // Para saber si está integrado en el buscador
 }
 
 interface MathSymbol {
@@ -136,7 +137,7 @@ const mathCategories = {
   }
 }
 
-export default function MathKeyboard({ onSymbolClick, isVisible, onToggle }: MathKeyboardProps) {
+export default function MathKeyboard({ onSymbolClick, isVisible, onToggle, integrated = false }: MathKeyboardProps) {
   const [activeCategory, setActiveCategory] = useState<keyof typeof mathCategories>('basic')
 
   const handleSymbolClick = (symbol: string) => {
@@ -145,15 +146,15 @@ export default function MathKeyboard({ onSymbolClick, isVisible, onToggle }: Mat
 
   if (!isVisible) {
     return (
-      <div className="flex justify-center mt-2">
+      <div className={`flex justify-center ${integrated ? 'mt-2 mb-2' : 'mt-2'}`}>
         <Button 
           variant="outline" 
           size="sm" 
           onClick={onToggle}
-          className="flex items-center gap-2 text-sm"
+          className="flex items-center gap-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 border-dashed"
         >
           <Calculator className="h-4 w-4" />
-          Mostrar Teclado Matemático
+          {integrated ? '🎹 Teclado Matemático' : 'Mostrar Teclado Matemático'}
           <ChevronDown className="h-3 w-3" />
         </Button>
       </div>
@@ -163,69 +164,73 @@ export default function MathKeyboard({ onSymbolClick, isVisible, onToggle }: Mat
   const currentCategory = mathCategories[activeCategory]
 
   return (
-    <Card className="mt-4 border-2 border-blue-200 dark:border-blue-800 shadow-lg">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            Teclado Matemático
-          </h3>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onToggle}
-            className="flex items-center gap-1"
-          >
-            Ocultar
-            <ChevronUp className="h-3 w-3" />
-          </Button>
-        </div>
-
-        {/* Categorías */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {Object.entries(mathCategories).map(([key, category]) => {
-            const IconComponent = category.icon
-            const isActive = activeCategory === key
-            return (
-              <Badge
-                key={key}
-                variant={isActive ? "default" : "secondary"}
-                className={`cursor-pointer px-3 py-2 flex items-center gap-2 ${
-                  isActive ? "bg-blue-600 text-white" : category.color
-                }`}
-                onClick={() => setActiveCategory(key as keyof typeof mathCategories)}
-              >
-                <IconComponent className="h-4 w-4" />
-                {category.name}
-              </Badge>
-            )
-          })}
-        </div>
-
-        {/* Símbolos */}
-        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
-          {currentCategory.symbols.map((item, index) => (
-            <Button
-              key={index}
-              variant="outline"
-              size="sm"
-              className="h-12 w-12 text-lg font-mono hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-900/20 dark:hover:border-blue-600 transition-colors"
-              onClick={() => handleSymbolClick(item.symbol)}
-              title={item.description || item.label}
+    <div className={integrated ? "mb-3" : ""}>
+      <Card className={`${integrated ? 'border-gray-200 dark:border-gray-700 shadow-sm bg-gray-50 dark:bg-gray-800/50' : 'mt-4 border-2 border-blue-200 dark:border-blue-800 shadow-lg'}`}>
+        <CardContent className={integrated ? "p-3" : "p-4"}>
+          <div className={`flex items-center justify-between ${integrated ? 'mb-3' : 'mb-4'}`}>
+            <h3 className={`${integrated ? 'text-base' : 'text-lg'} font-semibold flex items-center gap-2`}>
+              <Calculator className={integrated ? "h-4 w-4" : "h-5 w-5"} />
+              {integrated ? "Símbolos Matemáticos" : "Teclado Matemático"}
+            </h3>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onToggle}
+              className="flex items-center gap-1"
             >
-              {item.label}
+              Ocultar
+              <ChevronUp className="h-3 w-3" />
             </Button>
-          ))}
-        </div>
+          </div>
 
-        {/* Instrucciones */}
-        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            💡 <strong>Tip:</strong> Haz clic en cualquier símbolo para agregarlo a tu ecuación. 
-            Puedes combinar símbolos para crear expresiones complejas como límites multivariados.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+          {/* Categorías */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {Object.entries(mathCategories).map(([key, category]) => {
+              const IconComponent = category.icon
+              const isActive = activeCategory === key
+              return (
+                <Badge
+                  key={key}
+                  variant={isActive ? "default" : "secondary"}
+                  className={`cursor-pointer px-3 py-2 flex items-center gap-2 ${
+                    isActive ? "bg-blue-600 text-white" : category.color
+                  }`}
+                  onClick={() => setActiveCategory(key as keyof typeof mathCategories)}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  {category.name}
+                </Badge>
+              )
+            })}
+          </div>
+
+          {/* Símbolos */}
+          <div className={`grid gap-2 ${integrated ? 'grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-14' : 'grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12'}`}>
+            {currentCategory.symbols.map((item, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                className={`${integrated ? 'h-10 w-10 text-base' : 'h-12 w-12 text-lg'} font-mono hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-900/20 dark:hover:border-blue-600 transition-colors`}
+                onClick={() => handleSymbolClick(item.symbol)}
+                title={item.description || item.label}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Instrucciones */}
+          {!integrated && (
+            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                💡 <strong>Tip:</strong> Haz clic en cualquier símbolo para agregarlo a tu ecuación. 
+                Puedes combinar símbolos para crear expresiones complejas como límites multivariados.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }
