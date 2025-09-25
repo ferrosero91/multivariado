@@ -2,19 +2,25 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
+import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, TrendingUp } from "lucide-react"
+import { BarChart3, TrendingUp, Camera, Zap } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { aiSolver } from "@/lib/ai-solver"
+import { groqVision } from "@/lib/services/groq-vision"
+import CameraUpload from "./camera-upload"
+import EnhancedStepDisplay from "./enhanced-step-display"
 
 export default function StatisticsCalculator() {
   const [data, setData] = useState<number[]>([])
   const [results, setResults] = useState<any>(null)
   const [chartData, setChartData] = useState<any[]>([])
   const [isCalculating, setIsCalculating] = useState(false)
+  const [showCamera, setShowCamera] = useState(false)
+  const [groqResult, setGroqResult] = useState<{steps: string[], answer: string} | null>(null)
+  const [showEnhancedSteps, setShowEnhancedSteps] = useState(false)
 
   const calculateStatistics = async (values: number[]) => {
     if (values.length === 0) return
@@ -23,9 +29,22 @@ export default function StatisticsCalculator() {
 
     try {
       const problem = `Calcular estadísticas descriptivas para los datos: [${values.join(', ')}]. Incluir media, mediana, moda, varianza, desviación estándar y rango.`
-      console.log('🧮 Calculating statistics with AI:', problem)
-
-      const solution = await aiSolver.solveSpecificProblem(problem)
+      
+      // Intentar con Groq Vision si está disponible
+      if (groqVision.isAvailable()) {
+        console.log('🚀 Using Groq Vision for statistics calculation...')
+        const groqSolution = await groqVision.solveMathProblemText(problem)
+        
+        setGroqResult({
+          steps: groqSolution.steps,
+          answer: groqSolution.answer
+        })
+        console.log('✅ Groq Vision statistics solution received:', groqSolution)
+      } else {
+        console.log('🧮 Calculating statistics with AI fallback:', problem)
+        const solution = await aiSolver.solveSpecificProblem(problem)
+        console.log('✅ AI statistics solution received:', solution)
+      }
 
       // También calcular localmente como fallback
       const n = values.length
@@ -118,6 +137,14 @@ export default function StatisticsCalculator() {
     }
   }
 
+  const handleImageProcessed = (expression: string) => {
+    // Procesar la expresión de la imagen con Groq Vision
+    console.log('🖼️ Image processed:', expression)
+    setShowCamera(false)
+    // Aquí podrías parsear la expresión para extraer datos numéricos
+    handleDataInput(expression)
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -139,6 +166,29 @@ export default function StatisticsCalculator() {
               onChange={(e) => handleDataInput(e.target.value)}
               className="mt-2"
             />
+          </div>
+
+          {/* Botones de acción */}
+          <div className="space-y-2">
+            <Button
+              variant="secondary"
+              onClick={() => setShowCamera(!showCamera)}
+              className="w-full"
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              {showCamera ? "Ocultar Cámara" : "Usar Cámara"}
+            </Button>
+            
+            {groqResult && (
+              <Button
+                variant="default"
+                onClick={() => setShowEnhancedSteps(true)}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Ver Solución Detallada
+              </Button>
+            )}
           </div>
 
           {data.length > 0 && (
@@ -242,6 +292,37 @@ export default function StatisticsCalculator() {
           )}
         </CardContent>
       </Card>
+
+      {/* Camera Upload */}
+      {showCamera && (
+        <CameraUpload
+          onImageProcessed={handleImageProcessed}
+          onImageSelected={(imageUrl) => console.log("Image selected:", imageUrl)}
+        />
+      )}
+
+      {/* Modal de Solución Detallada con Groq Vision */}
+      {showEnhancedSteps && groqResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <div className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 className="text-lg sm:text-2xl font-bold">Solución Detallada con IA</h2>
+                <Button variant="ghost" onClick={() => setShowEnhancedSteps(false)} size="sm">
+                  ✕
+                </Button>
+              </div>
+              <EnhancedStepDisplay 
+                steps={groqResult.steps}
+                equation="Análisis Estadístico"
+                answer={groqResult.answer}
+                provider="Groq Vision"
+                confidence={95}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

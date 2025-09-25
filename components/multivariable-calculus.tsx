@@ -13,6 +13,8 @@ import SurfacePlot3D from "./surface-plot-3d"
 import CameraUpload from "./camera-upload"
 import StepByStepSolver from "./step-by-step-solver"
 import { aiSolver } from "@/lib/ai-solver"
+import { groqVision } from "@/lib/services/groq-vision"
+import EnhancedStepDisplay from "./enhanced-step-display"
 
 export default function MultivariableCalculus() {
   const [functionInput, setFunctionInput] = useState("x^2 + y^2")
@@ -22,21 +24,40 @@ export default function MultivariableCalculus() {
   const [showCamera, setShowCamera] = useState(false)
   const [showStepByStep, setShowStepByStep] = useState(false)
   const [aiSteps, setAiSteps] = useState<string[]>([])
+  const [groqResult, setGroqResult] = useState<{steps: string[], answer: string} | null>(null)
+  const [showEnhancedSteps, setShowEnhancedSteps] = useState(false)
 
   const calculateGradient = async () => {
     setIsCalculating(true)
     
     try {
       const problem = `Calcular el gradiente de f(x,y) = ${functionInput}`
-      console.log('🧮 Calculating gradient with AI:', problem)
       
-      const solution = await aiSolver.solveSpecificProblem(problem)
-      setResult(solution.solution)
-      const steps = solution.steps.map(step => step.explanation)
-      setAiSteps(steps)
-      
-      console.log('✅ AI gradient solution received:', solution)
-      console.log('📝 Steps:', steps) // Usar aiSteps para evitar warning
+      // Primero intentar con Groq Vision si está disponible
+      if (groqVision.isAvailable()) {
+        console.log('🚀 Using Groq Vision for gradient calculation...')
+        const groqSolution = await groqVision.solveMathProblemText(problem)
+        
+        setResult(groqSolution.answer)
+        setGroqResult({
+          steps: groqSolution.steps,
+          answer: groqSolution.answer
+        })
+        
+        console.log('✅ Groq Vision gradient solution received:', groqSolution)
+      } else {
+        // Fallback al AI solver normal
+        console.log('🧮 Calculating gradient with AI fallback:', problem)
+        
+        const solution = await aiSolver.solveSpecificProblem(problem)
+        setResult(solution.solution)
+        const steps = solution.steps.map(step => step.explanation)
+        setAiSteps(steps)
+        setGroqResult(null)
+        
+        console.log('✅ AI gradient solution received:', solution)
+        console.log('📝 Steps:', steps) // Usar aiSteps para evitar warning
+      }
     } catch (error) {
       console.error('❌ Error calculating gradient:', error)
       setResult("Error al calcular el gradiente. Verifica la expresión.")
@@ -77,6 +98,42 @@ export default function MultivariableCalculus() {
 
   const calculateDoubleIntegral = () => {
     setResult("∬ f(x,y) dA = π/2 (sobre región circular)")
+  }
+
+  const calculateDomainRange = async () => {
+    try {
+      // Usar Groq Vision para calcular dominio y rango de función multivariable
+      if (groqVision.isAvailable()) {
+        console.log('🚀 Using Groq Vision for multivariable domain and range calculation...')
+        const problem = `Determinar el dominio y rango de la función f(x,y) = ${functionInput}`
+        const groqSolution = await groqVision.solveMathProblemText(problem)
+        
+        setResult(`Dominio y Rango: ${groqSolution.answer}`)
+        setGroqResult({
+          steps: groqSolution.steps,
+          answer: groqSolution.answer
+        })
+        
+        console.log('✅ Groq Vision multivariable domain/range solution received:', groqSolution)
+      } else {
+        // Análisis básico local para funciones multivariables
+        let domain = "ℝ² (todo el plano xy)"
+        let range = "Depende de la función"
+        
+        if (functionInput.includes("sqrt")) {
+          domain = "Donde la expresión bajo la raíz sea ≥ 0"
+        } else if (functionInput.includes("1/(") || functionInput.includes("/(")) {
+          domain = "ℝ² excepto donde el denominador sea 0"
+        } else if (functionInput.includes("ln") || functionInput.includes("log")) {
+          domain = "Donde el argumento del logaritmo sea > 0"
+        }
+        
+        setResult(`Dominio: ${domain}\nRango: ${range}`)
+      }
+    } catch (error) {
+      console.error('❌ Error calculating domain and range:', error)
+      setResult("Error al calcular dominio y rango")
+    }
   }
 
   const handleImageProcessed = (expression: string) => {
@@ -136,6 +193,9 @@ export default function MultivariableCalculus() {
               <Button variant="outline" onClick={calculateDoubleIntegral}>
                 Integral Doble
               </Button>
+              <Button variant="outline" onClick={calculateDomainRange}>
+                Dominio y Rango
+              </Button>
               <Button
                 variant="secondary"
                 onClick={() => setShowStepByStep(!showStepByStep)}
@@ -152,6 +212,16 @@ export default function MultivariableCalculus() {
                 <Camera className="h-4 w-4" />
                 {showCamera ? "Ocultar Cámara" : "Usar Cámara"}
               </Button>
+              {groqResult && (
+                <Button
+                  variant="default"
+                  onClick={() => setShowEnhancedSteps(true)}
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Zap className="h-4 w-4" />
+                  Ver Solución Detallada
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -217,6 +287,29 @@ export default function MultivariableCalculus() {
       )}
 
       <SurfacePlot3D expression={functionInput} title="Visualización 3D" xRange={[-3, 3]} yRange={[-3, 3]} />
+
+      {/* Modal de Solución Detallada con Groq Vision */}
+      {showEnhancedSteps && groqResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <div className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 className="text-lg sm:text-2xl font-bold">Solución Detallada con IA</h2>
+                <Button variant="ghost" onClick={() => setShowEnhancedSteps(false)} size="sm">
+                  ✕
+                </Button>
+              </div>
+              <EnhancedStepDisplay 
+                steps={groqResult.steps}
+                equation={`f(x,y) = ${functionInput}`}
+                answer={groqResult.answer}
+                provider="Groq Vision"
+                confidence={95}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

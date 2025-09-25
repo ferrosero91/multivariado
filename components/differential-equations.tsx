@@ -13,6 +13,8 @@ import CameraUpload from "./camera-upload"
 import FunctionPlot from "./function-plot"
 import { MathEvaluator } from "./math-evaluator"
 import { aiSolver } from "@/lib/ai-solver"
+import { groqVision } from "@/lib/services/groq-vision"
+import EnhancedStepDisplay from "./enhanced-step-display"
 
 export default function DifferentialEquations() {
   const [equation, setEquation] = useState("")
@@ -21,6 +23,8 @@ export default function DifferentialEquations() {
   const [steps, setSteps] = useState<string[]>([])
   const [plotData, setPlotData] = useState<any>(null)
   const [isCalculating, setIsCalculating] = useState(false)
+  const [groqResult, setGroqResult] = useState<{steps: string[], answer: string} | null>(null)
+  const [showEnhancedSteps, setShowEnhancedSteps] = useState(false)
 
   const mathEvaluator = MathEvaluator.getInstance()
 
@@ -29,21 +33,41 @@ export default function DifferentialEquations() {
 
     setIsCalculating(true)
     try {
-      // Usar IA para resolver la ecuación diferencial
       const problem = `Resolver la ecuación diferencial: ${equation} con condiciones iniciales x(${initialConditions.x0}) = ${initialConditions.y0}`
-      console.log('🧮 Solving differential equation with AI:', problem)
       
-      const aiSolution = await aiSolver.solveSpecificProblem(problem)
+      let solutionExpression = ""
       
-      setSolution(aiSolution.solution)
-      setSteps(aiSolution.steps.map(step => step.explanation))
-      
-      console.log('✅ AI differential equation solution received:', aiSolution)
+      // Primero intentar con Groq Vision si está disponible
+      if (groqVision.isAvailable()) {
+        console.log('🚀 Using Groq Vision for differential equation...')
+        const groqSolution = await groqVision.solveMathProblemText(problem)
+        
+        setSolution(groqSolution.answer)
+        setGroqResult({
+          steps: groqSolution.steps,
+          answer: groqSolution.answer
+        })
+        solutionExpression = groqSolution.answer
+        
+        console.log('✅ Groq Vision differential equation solution received:', groqSolution)
+      } else {
+        // Fallback al AI solver normal
+        console.log('🧮 Solving differential equation with AI fallback:', problem)
+        
+        const aiSolution = await aiSolver.solveSpecificProblem(problem)
+        
+        setSolution(aiSolution.solution)
+        setSteps(aiSolution.steps.map(step => step.explanation))
+        setGroqResult(null)
+        solutionExpression = aiSolution.solution
+        
+        console.log('✅ AI differential equation solution received:', aiSolution)
+      }
 
       // Generar datos para la gráfica si es posible
       try {
         setPlotData({
-          expression: aiSolution.solution,
+          expression: solutionExpression,
           title: "Solución de la Ecuación Diferencial",
         })
       } catch (plotError) {
@@ -134,6 +158,17 @@ export default function DifferentialEquations() {
                     </>
                   )}
                 </Button>
+                
+                {groqResult && (
+                  <Button
+                    variant="default"
+                    onClick={() => setShowEnhancedSteps(true)}
+                    className="w-full bg-green-600 hover:bg-green-700 mt-3"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Ver Solución Detallada
+                  </Button>
+                )}
               </div>
 
               {/* Ecuaciones comunes */}
@@ -202,6 +237,29 @@ export default function DifferentialEquations() {
 
       {/* Gráfica de la solución */}
       {plotData && <FunctionPlot expression={plotData.expression} title={plotData.title} xRange={[-5, 5]} />}
+
+      {/* Modal de Solución Detallada con Groq Vision */}
+      {showEnhancedSteps && groqResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <div className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 className="text-lg sm:text-2xl font-bold">Solución Detallada con IA</h2>
+                <Button variant="ghost" onClick={() => setShowEnhancedSteps(false)} size="sm">
+                  ✕
+                </Button>
+              </div>
+              <EnhancedStepDisplay 
+                steps={groqResult.steps}
+                equation={equation}
+                answer={groqResult.answer}
+                provider="Groq Vision"
+                confidence={95}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

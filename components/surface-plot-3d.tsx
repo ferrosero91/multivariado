@@ -125,8 +125,15 @@ function Surface3D({
   }, [expression, xRange, yRange])
 
   return (
-    <mesh geometry={geometry}>
-      <meshPhongMaterial vertexColors side={THREE.DoubleSide} />
+    <mesh geometry={geometry} castShadow receiveShadow>
+      <meshPhongMaterial 
+        vertexColors 
+        side={THREE.DoubleSide} 
+        shininess={30}
+        transparent={false}
+        opacity={0.9}
+        wireframe={false}
+      />
     </mesh>
   )
 }
@@ -206,7 +213,13 @@ export default function SurfacePlot3D({
 
         {/* Vista 3D con React Three Fiber */}
         <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
-          <Canvas camera={{ position: [8, 8, 8], fov: 60 }} style={{ width: "100%", height: "100%" }}>
+          <Canvas 
+            camera={{ position: [8, 8, 8], fov: 60 }} 
+            style={{ width: "100%", height: "100%" }}
+            shadows
+            gl={{ antialias: true, alpha: false }}
+            dpr={[1, 2]}
+          >
             <Suspense
               fallback={
                 <mesh>
@@ -215,10 +228,22 @@ export default function SurfacePlot3D({
                 </mesh>
               }
             >
-              {/* Iluminación mejorada */}
-              <ambientLight intensity={0.4} />
-              <directionalLight position={[10, 10, 5]} intensity={0.8} />
-              <pointLight position={[-10, -10, -5]} intensity={0.3} />
+              {/* Iluminación mejorada con sombras */}
+              <ambientLight intensity={0.3} />
+              <directionalLight 
+                position={[10, 10, 5]} 
+                intensity={1.0}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+                shadow-camera-far={50}
+                shadow-camera-left={-10}
+                shadow-camera-right={10}
+                shadow-camera-top={10}
+                shadow-camera-bottom={-10}
+              />
+              <pointLight position={[-10, -10, -5]} intensity={0.4} />
+              <hemisphereLight intensity={0.2} />
 
               {/* Entorno */}
               <Environment preset="studio" />

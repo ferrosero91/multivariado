@@ -7,20 +7,39 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Triangle, Square, Circle, Calculator } from "lucide-react"
+import { Triangle, Square, Circle, Calculator, Camera, Zap } from "lucide-react"
 import { aiSolver } from "@/lib/ai-solver"
+import { groqVision } from "@/lib/services/groq-vision"
+import CameraUpload from "./camera-upload"
+import EnhancedStepDisplay from "./enhanced-step-display"
 
 export default function GeometryCalculator() {
   const [triangleResults, setTriangleResults] = useState<any>(null)
   const [circleResults, setCircleResults] = useState<any>(null)
   const [rectangleResults, setRectangleResults] = useState<any>(null)
+  const [showCamera, setShowCamera] = useState(false)
+  const [groqResult, setGroqResult] = useState<{steps: string[], answer: string} | null>(null)
+  const [showEnhancedSteps, setShowEnhancedSteps] = useState(false)
 
   const calculateTriangle = async (a: number, b: number, c: number) => {
     try {
       const problem = `Calcular área, perímetro y ángulos de un triángulo con lados a=${a}, b=${b}, c=${c}`
-      console.log('🧮 Calculating triangle with AI:', problem)
       
-      const solution = await aiSolver.solveSpecificProblem(problem)
+      // Intentar con Groq Vision si está disponible
+      if (groqVision.isAvailable()) {
+        console.log('🚀 Using Groq Vision for triangle calculation...')
+        const groqSolution = await groqVision.solveMathProblemText(problem)
+        
+        setGroqResult({
+          steps: groqSolution.steps,
+          answer: groqSolution.answer
+        })
+        console.log('✅ Groq Vision triangle solution received:', groqSolution)
+      } else {
+        console.log('🧮 Calculating triangle with AI fallback:', problem)
+        const solution = await aiSolver.solveSpecificProblem(problem)
+        console.log('✅ AI triangle solution received:', solution)
+      }
       
       // También calcular localmente como fallback
       const s = (a + b + c) / 2
@@ -38,10 +57,8 @@ export default function GeometryCalculator() {
           B: angleB.toFixed(2),
           C: angleC.toFixed(2),
         },
-        aiSolution: solution.solution
+        aiSolution: groqResult?.answer || "Calculado localmente"
       })
-      
-      console.log('✅ AI triangle solution received:', solution)
     } catch (error) {
       console.error('❌ Error calculating triangle:', error)
     }
@@ -69,6 +86,13 @@ export default function GeometryCalculator() {
       perimeter: perimeter.toFixed(2),
       diagonal: diagonal.toFixed(2),
     })
+  }
+
+  const handleImageProcessed = (expression: string) => {
+    // Procesar la expresión de la imagen con Groq Vision
+    console.log('🖼️ Image processed:', expression)
+    setShowCamera(false)
+    // Aquí podrías parsear la expresión para extraer medidas geométricas
   }
 
   return (
@@ -118,18 +142,40 @@ export default function GeometryCalculator() {
                   <Input id="side-c" type="number" placeholder="3" />
                 </div>
               </div>
-              <Button
-                onClick={() => {
-                  const a = Number.parseFloat((document.getElementById("side-a") as HTMLInputElement).value)
-                  const b = Number.parseFloat((document.getElementById("side-b") as HTMLInputElement).value)
-                  const c = Number.parseFloat((document.getElementById("side-c") as HTMLInputElement).value)
-                  if (a && b && c) calculateTriangle(a, b, c)
-                }}
-                className="w-full"
-              >
-                <Calculator className="h-4 w-4 mr-2" />
-                Calcular Triángulo
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => {
+                    const a = Number.parseFloat((document.getElementById("side-a") as HTMLInputElement).value)
+                    const b = Number.parseFloat((document.getElementById("side-b") as HTMLInputElement).value)
+                    const c = Number.parseFloat((document.getElementById("side-c") as HTMLInputElement).value)
+                    if (a && b && c) calculateTriangle(a, b, c)
+                  }}
+                  className="w-full"
+                >
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Calcular Triángulo
+                </Button>
+                
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowCamera(!showCamera)}
+                  className="w-full"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  {showCamera ? "Ocultar Cámara" : "Usar Cámara"}
+                </Button>
+                
+                {groqResult && (
+                  <Button
+                    variant="default"
+                    onClick={() => setShowEnhancedSteps(true)}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Ver Solución Detallada
+                  </Button>
+                )}
+              </div>
 
               {triangleResults && (
                 <div className="mt-6 p-4 bg-muted rounded-lg">
@@ -279,6 +325,37 @@ export default function GeometryCalculator() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Camera Upload */}
+      {showCamera && (
+        <CameraUpload
+          onImageProcessed={handleImageProcessed}
+          onImageSelected={(imageUrl) => console.log("Image selected:", imageUrl)}
+        />
+      )}
+
+      {/* Modal de Solución Detallada con Groq Vision */}
+      {showEnhancedSteps && groqResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-auto">
+            <div className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 className="text-lg sm:text-2xl font-bold">Solución Detallada con IA</h2>
+                <Button variant="ghost" onClick={() => setShowEnhancedSteps(false)} size="sm">
+                  ✕
+                </Button>
+              </div>
+              <EnhancedStepDisplay 
+                steps={groqResult.steps}
+                equation="Cálculo Geométrico"
+                answer={groqResult.answer}
+                provider="Groq Vision"
+                confidence={95}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
