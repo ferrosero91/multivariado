@@ -268,24 +268,33 @@ function Plane3D({ coefficients, color, opacity }: { coefficients: PlaneData['co
 }
 
 // Componente para superficies z = f(x,y)
-function FunctionSurface({ equation, color }: { equation: string; color: string }) {
+function FunctionSurface({ equation, color, domain = { xMin: -3, xMax: 3, yMin: -3, yMax: 3 } }: { equation: string; color: string; domain?: { xMin: number; xMax: number; yMin: number; yMax: number } }) {
   const geometry = useMemo(() => {
-    const size = 6
-    const resolution = 50
-    const geo = new THREE.PlaneGeometry(size, size, resolution, resolution)
+    const { xMin, xMax, yMin, yMax } = domain
+    const width = xMax - xMin
+    const height = yMax - yMin
+    const resolution = 80 // Mayor resolución para mejor calidad
+    const geo = new THREE.PlaneGeometry(width, height, resolution, resolution)
     const positions = geo.attributes.position.array as Float32Array
     
+    // Ajustar posiciones para que coincidan con el dominio
     for (let i = 0; i < positions.length; i += 3) {
-      const x = positions[i]
-      const y = positions[i + 2]
-      const z = evaluateExpression(equation, { x, y, z: 0 })
-      positions[i + 1] = z // Y es Z en Three.js
+      // Convertir de coordenadas normalizadas a coordenadas del dominio
+      const x = xMin + (positions[i] + width/2) * (width / width)
+      const y = yMin + (positions[i + 2] + height/2) * (height / height)
+      
+      try {
+        const z = evaluateExpression(equation, { x, y, z: 0 })
+        positions[i + 1] = z // Y es Z en Three.js
+      } catch (error) {
+        positions[i + 1] = 0 // Valor predeterminado en caso de error
+      }
     }
     
     geo.attributes.position.needsUpdate = true
     geo.computeVertexNormals()
     return geo
-  }, [equation])
+  }, [equation, domain])
   
   return (
     <mesh geometry={geometry}>
@@ -323,6 +332,69 @@ function ParametricLine({ parametric, color }: { parametric: { x: string; y: str
   )
 }
 
+// Componente para superficies paramétricas 3D
+function ParametricSurface({ parametric, color, domain = { uMin: 0, uMax: 2*Math.PI, vMin: 0, vMax: Math.PI } }: 
+  { parametric: { x: string; y: string; z: string }; color: string; domain?: { uMin: number; uMax: number; vMin: number; vMax: number } }) {
+  const geometry = useMemo(() => {
+    const { uMin, uMax, vMin, vMax } = domain
+    const uSegments = 50
+    const vSegments = 50
+    
+    // Crear una geometría de buffer personalizada
+    const geo = new THREE.BufferGeometry()
+    
+    // Generar vértices y caras
+    const vertices = []
+    const indices = []
+    
+    // Generar vértices
+    for (let i = 0; i <= uSegments; i++) {
+      const u = uMin + (i / uSegments) * (uMax - uMin)
+      for (let j = 0; j <= vSegments; j++) {
+        const v = vMin + (j / vSegments) * (vMax - vMin)
+        
+        try {
+          const x = evaluateExpression(parametric.x, { u, v })
+          const y = evaluateExpression(parametric.y, { u, v })
+          const z = evaluateExpression(parametric.z, { u, v })
+          
+          // En Three.js, Y es el eje vertical (Z en matemáticas)
+          vertices.push(x, z, y)
+        } catch (error) {
+          vertices.push(0, 0, 0) // Valor predeterminado en caso de error
+        }
+      }
+    }
+    
+    // Generar índices para triángulos
+    for (let i = 0; i < uSegments; i++) {
+      for (let j = 0; j < vSegments; j++) {
+        const a = i * (vSegments + 1) + j
+        const b = a + 1
+        const c = a + (vSegments + 1)
+        const d = c + 1
+        
+        // Dos triángulos por cuadrado
+        indices.push(a, b, c)
+        indices.push(c, b, d)
+      }
+    }
+    
+    // Configurar atributos de la geometría
+    geo.setIndex(indices)
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+    geo.computeVertexNormals()
+    
+    return geo
+  }, [parametric, domain])
+  
+  return (
+    <mesh geometry={geometry}>
+      <meshLambertMaterial color={color} transparent opacity={0.8} side={THREE.DoubleSide} />
+    </mesh>
+  )
+}
+
 // Componente principal mejorado
 export default function EnhancedMultivariable3D({ 
   title = "Calculadora Multivariable Profesional" 
@@ -332,10 +404,24 @@ export default function EnhancedMultivariable3D({
   const [activeTab, setActiveTab] = useState("surfaces")
   
   // Estados para superficies con ejemplos
-  const [surfaces, setSurfaces] = useState<{ equation: string; color: string; visible: boolean }[]>([
-    { equation: "x^2 + y^2", color: "#3b82f6", visible: true }
+  const [surfaces, setSurfaces] = useState<{ equation: string; color: string; visible: boolean; domain?: { xMin: number; xMax: number; yMin: number; yMax: number } }[]>([
+    { equation: "x^2 + y^2", color: "#3b82f6", visible: true, domain: { xMin: -3, xMax: 3, yMin: -3, yMax: 3 } }
   ])
-  const [newSurface, setNewSurface] = useState({ equation: "sin(x)*cos(y)", color: "#10b981" })
+  const [newSurface, setNewSurface] = useState({ 
+    equation: "sin(x)*cos(y)", 
+    color: "#10b981",
+    domain: { xMin: -3, xMax: 3, yMin: -3, yMax: 3 }
+  })
+  
+  // Estados para superficies paramétricas
+  const [parametricSurfaces, setParametricSurfaces] = useState<{ x: string; y: string; z: string; color: string; visible: boolean; domain?: { uMin: number; uMax: number; vMin: number; vMax: number } }[]>([])
+  const [newParametricSurface, setNewParametricSurface] = useState({ 
+    x: "cos(u)*sin(v)", 
+    y: "sin(u)*sin(v)", 
+    z: "cos(v)",
+    color: "#ec4899",
+    domain: { uMin: 0, uMax: 2*Math.PI, vMin: 0, vMax: Math.PI }
+  })
   
   // Estados para superficies cuádricas
   const [quadrics, setQuadrics] = useState<QuadricData[]>([])
@@ -375,7 +461,25 @@ export default function EnhancedMultivariable3D({
   const addSurface = () => {
     if (newSurface.equation.trim()) {
       setSurfaces([...surfaces, { ...newSurface, visible: true }])
-      setNewSurface({ equation: "", color: "#3b82f6" })
+      setNewSurface({ 
+        equation: "", 
+        color: "#3b82f6",
+        domain: { xMin: -3, xMax: 3, yMin: -3, yMax: 3 }
+      })
+    }
+  }
+  
+  // Función para agregar superficie paramétrica
+  const addParametricSurface = () => {
+    if (newParametricSurface.x.trim() && newParametricSurface.y.trim() && newParametricSurface.z.trim()) {
+      setParametricSurfaces([...parametricSurfaces, { ...newParametricSurface, visible: true }])
+      setNewParametricSurface({ 
+        x: "", 
+        y: "", 
+        z: "",
+        color: "#ec4899",
+        domain: { uMin: 0, uMax: 2*Math.PI, vMin: 0, vMax: Math.PI }
+      })
     }
   }
 
@@ -493,8 +597,9 @@ export default function EnhancedMultivariable3D({
       <CardContent className="space-y-6">
         {/* Tabs principales */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="surfaces">Superficies</TabsTrigger>
+            <TabsTrigger value="parametric">Paramétricas</TabsTrigger>
             <TabsTrigger value="quadrics">Cuádricas</TabsTrigger>
             <TabsTrigger value="planes">Planos</TabsTrigger>
             <TabsTrigger value="lines">Rectas</TabsTrigger>
@@ -513,8 +618,8 @@ export default function EnhancedMultivariable3D({
                 className="mt-2"
               />
             </div>
-            <div className="flex gap-4">
-              <div className="flex-1">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <Label>Color</Label>
                 <Input
                   type="color"
@@ -522,13 +627,63 @@ export default function EnhancedMultivariable3D({
                   onChange={(e) => setNewSurface({...newSurface, color: e.target.value})}
                 />
               </div>
-              <div className="flex-1 flex items-end">
-                <Button onClick={addSurface} className="w-full">
-                  <Circle className="h-4 w-4 mr-2" />
-                  Agregar Superficie
-                </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Dominio X</Label>
+                  <div className="flex gap-1">
+                    <Input
+                      type="number"
+                      value={newSurface.domain?.xMin}
+                      onChange={(e) => setNewSurface({
+                        ...newSurface, 
+                        domain: {...newSurface.domain!, xMin: Number(e.target.value)}
+                      })}
+                      placeholder="-3"
+                      className="w-full"
+                    />
+                    <Input
+                      type="number"
+                      value={newSurface.domain?.xMax}
+                      onChange={(e) => setNewSurface({
+                        ...newSurface, 
+                        domain: {...newSurface.domain!, xMax: Number(e.target.value)}
+                      })}
+                      placeholder="3"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Dominio Y</Label>
+                  <div className="flex gap-1">
+                    <Input
+                      type="number"
+                      value={newSurface.domain?.yMin}
+                      onChange={(e) => setNewSurface({
+                        ...newSurface, 
+                        domain: {...newSurface.domain!, yMin: Number(e.target.value)}
+                      })}
+                      placeholder="-3"
+                      className="w-full"
+                    />
+                    <Input
+                      type="number"
+                      value={newSurface.domain?.yMax}
+                      onChange={(e) => setNewSurface({
+                        ...newSurface, 
+                        domain: {...newSurface.domain!, yMax: Number(e.target.value)}
+                      })}
+                      placeholder="3"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
+            <Button onClick={addSurface} className="w-full">
+              <Circle className="h-4 w-4 mr-2" />
+              Agregar Superficie
+            </Button>
             
             {/* Lista de superficies */}
             <div className="space-y-2 max-h-32 overflow-y-auto">
@@ -544,6 +699,131 @@ export default function EnhancedMultivariable3D({
                     }}
                   />
                   <span className="flex-1 text-sm">z = {surface.equation}</span>
+                  <div className="w-4 h-4 rounded border" style={{ backgroundColor: surface.color }} />
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          
+          {/* Tab Superficies Paramétricas */}
+          <TabsContent value="parametric" className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label htmlFor="parametric-x">x(u,v)</Label>
+                <Input
+                  id="parametric-x"
+                  value={newParametricSurface.x}
+                  onChange={(e) => setNewParametricSurface({...newParametricSurface, x: e.target.value})}
+                  placeholder="cos(u)*sin(v)"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="parametric-y">y(u,v)</Label>
+                <Input
+                  id="parametric-y"
+                  value={newParametricSurface.y}
+                  onChange={(e) => setNewParametricSurface({...newParametricSurface, y: e.target.value})}
+                  placeholder="sin(u)*sin(v)"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="parametric-z">z(u,v)</Label>
+                <Input
+                  id="parametric-z"
+                  value={newParametricSurface.z}
+                  onChange={(e) => setNewParametricSurface({...newParametricSurface, z: e.target.value})}
+                  placeholder="cos(v)"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Color</Label>
+                <Input
+                  type="color"
+                  value={newParametricSurface.color}
+                  onChange={(e) => setNewParametricSurface({...newParametricSurface, color: e.target.value})}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Dominio U</Label>
+                  <div className="flex gap-1">
+                    <Input
+                      type="number"
+                      value={newParametricSurface.domain?.uMin}
+                      onChange={(e) => setNewParametricSurface({
+                        ...newParametricSurface, 
+                        domain: {...newParametricSurface.domain!, uMin: Number(e.target.value)}
+                      })}
+                      placeholder="0"
+                      className="w-full"
+                    />
+                    <Input
+                      type="number"
+                      value={newParametricSurface.domain?.uMax}
+                      onChange={(e) => setNewParametricSurface({
+                        ...newParametricSurface, 
+                        domain: {...newParametricSurface.domain!, uMax: Number(e.target.value)}
+                      })}
+                      placeholder="2π"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Dominio V</Label>
+                  <div className="flex gap-1">
+                    <Input
+                      type="number"
+                      value={newParametricSurface.domain?.vMin}
+                      onChange={(e) => setNewParametricSurface({
+                        ...newParametricSurface, 
+                        domain: {...newParametricSurface.domain!, vMin: Number(e.target.value)}
+                      })}
+                      placeholder="0"
+                      className="w-full"
+                    />
+                    <Input
+                      type="number"
+                      value={newParametricSurface.domain?.vMax}
+                      onChange={(e) => setNewParametricSurface({
+                        ...newParametricSurface, 
+                        domain: {...newParametricSurface.domain!, vMax: Number(e.target.value)}
+                      })}
+                      placeholder="π"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <Button onClick={addParametricSurface} className="w-full">
+              <Circle className="h-4 w-4 mr-2" />
+              Agregar Superficie Paramétrica
+            </Button>
+            
+            {/* Lista de superficies paramétricas */}
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {parametricSurfaces.map((surface, index) => (
+                <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                  <input
+                    type="checkbox"
+                    checked={surface.visible}
+                    onChange={(e) => {
+                      const newSurfaces = [...parametricSurfaces]
+                      newSurfaces[index].visible = e.target.checked
+                      setParametricSurfaces(newSurfaces)
+                    }}
+                  />
+                  <span className="flex-1 text-sm">
+                    ({surface.x}, {surface.y}, {surface.z})
+                  </span>
                   <div className="w-4 h-4 rounded border" style={{ backgroundColor: surface.color }} />
                 </div>
               ))}
@@ -974,6 +1254,21 @@ export default function EnhancedMultivariable3D({
                   key={`surface-${index}`}
                   equation={surface.equation}
                   color={surface.color}
+                  domain={surface.domain}
+                />
+              ))}
+              
+              {/* Renderizar superficies paramétricas */}
+              {parametricSurfaces.filter(s => s.visible).map((surface, index) => (
+                <ParametricSurface
+                  key={`parametric-${index}`}
+                  parametric={{
+                    x: surface.x,
+                    y: surface.y,
+                    z: surface.z
+                  }}
+                  color={surface.color}
+                  domain={surface.domain}
                 />
               ))}
 
@@ -1025,6 +1320,10 @@ export default function EnhancedMultivariable3D({
           <div>
             <Badge variant="outline" className="mb-1">Superficies</Badge>
             <p className="text-xs text-muted-foreground">{surfaces.filter(s => s.visible).length} activas</p>
+          </div>
+          <div>
+            <Badge variant="outline" className="mb-1">Paramétricas</Badge>
+            <p className="text-xs text-muted-foreground">{parametricSurfaces.filter(s => s.visible).length} activas</p>
           </div>
           <div>
             <Badge variant="outline" className="mb-1">Cuádricas</Badge>

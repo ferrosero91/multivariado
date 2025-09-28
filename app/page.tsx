@@ -153,12 +153,7 @@ export default function SymbolabInspiredApp() {
               {/* Botones de usuario móvil */}
               <div className="flex items-center gap-1">
                 <AIStatusIndicator />
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent p-2">
-                  <User className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent p-2">
-                  <Settings className="h-4 w-4" />
-                </Button>
+
               </div>
             </div>
             
@@ -172,9 +167,7 @@ export default function SymbolabInspiredApp() {
           <div className="hidden sm:flex items-center justify-between">
             {/* Logo y título */}
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-lg">
-                <Calculator className="h-6 w-6 lg:h-7 lg:w-7 text-primary-foreground" />
-              </div>
+
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl lg:text-2xl font-bold text-foreground">
@@ -192,13 +185,7 @@ export default function SymbolabInspiredApp() {
             </div>
 
             {/* Botones de usuario */}
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent">
-                <User className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent">
-                <Settings className="h-5 w-5" />
-              </Button>
+            <div>
             </div>
           </div>
         </div>
@@ -211,7 +198,7 @@ export default function SymbolabInspiredApp() {
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <h2 className="text-lg sm:text-2xl font-bold">Solución Paso a Paso</h2>
                 <Button variant="ghost" onClick={() => setShowStepSolver(false)} size="sm">
-                  <X className="h-4 w-4" />
+                  Cerrar
                 </Button>
               </div>
               <div className="overflow-x-auto">
@@ -256,25 +243,12 @@ export default function SymbolabInspiredApp() {
         <main className="container mx-auto px-3 sm:px-6 py-6 sm:py-12">
           <div className="text-center mb-8 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
-              Calculadora Matemática Profesional
+              
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto mb-6 sm:mb-10 leading-relaxed px-2">
-              Herramientas avanzadas de cálculo con soluciones paso a paso y visualizaciones interactivas para estudiantes y profesionales.
+              
             </p>
-            <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
-              <Badge className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-primary text-primary-foreground border-0 text-xs sm:text-sm">
-                <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
-                Soluciones Precisas
-              </Badge>
-              <Badge className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-secondary text-secondary-foreground border border-border text-xs sm:text-sm">
-                <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
-                Explicaciones Detalladas
-              </Badge>
-              <Badge className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-accent text-accent-foreground border border-border text-xs sm:text-sm">
-                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-                Visualizaciones Avanzadas
-              </Badge>
-            </div>
+
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-16">
@@ -321,9 +295,7 @@ export default function SymbolabInspiredApp() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
               <div className="flex items-start gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 bg-primary rounded-lg flex-shrink-0">
-                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
-                </div>
+
                 <div className="min-w-0">
                   <h4 className="font-semibold text-base sm:text-lg mb-2 text-card-foreground">Soluciones Detalladas</h4>
                   <p className="text-muted-foreground leading-relaxed text-sm">
@@ -332,9 +304,7 @@ export default function SymbolabInspiredApp() {
                 </div>
               </div>
               <div className="flex items-start gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 bg-primary rounded-lg flex-shrink-0">
-                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
-                </div>
+
                 <div className="min-w-0">
                   <h4 className="font-semibold text-base sm:text-lg mb-2 text-card-foreground">Visualización Avanzada</h4>
                   <p className="text-muted-foreground leading-relaxed text-sm">
@@ -375,9 +345,8 @@ export default function SymbolabInspiredApp() {
                 onClick={() => setShowGroqVisionOCR(true)}
               >
                 <div>
-                  <div className="font-medium text-foreground text-xs sm:text-sm flex items-center gap-1">
+                  <div className="font-medium text-foreground text-xs sm:text-sm">
                     Reconocer Ejercicios
-                    <span className="text-purple-600">🤖</span>
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">Groq Vision IA Avanzada</div>
                 </div>

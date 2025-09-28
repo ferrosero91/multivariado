@@ -10,15 +10,10 @@ import {
   PopoverTrigger 
 } from "@/components/ui/popover"
 import { 
-  Brain, 
   CheckCircle, 
   XCircle, 
   Clock, 
-  RefreshCw,
-  Zap,
-  Globe,
-  Home,
-  Cpu
+  RefreshCw
 } from "lucide-react"
 import { aiSolver } from "@/lib/ai-solver"
 
@@ -36,22 +31,7 @@ export default function AIStatusIndicator() {
   const [lastCheck, setLastCheck] = useState<Date | null>(null)
 
   const getProviderIcon = (name: string) => {
-    switch (name) {
-      case 'Groq':
-        return <Zap className="h-4 w-4" />
-      case 'OpenRouter':
-        return <Globe className="h-4 w-4" />
-      case 'Hugging Face':
-        return <Brain className="h-4 w-4" />
-      case 'Cohere':
-        return <Cpu className="h-4 w-4" />
-      case 'Ollama Local':
-        return <Home className="h-4 w-4" />
-      case 'Local Fallback':
-        return <CheckCircle className="h-4 w-4" />
-      default:
-        return <Brain className="h-4 w-4" />
-    }
+    return null;
   }
 
   const getProviderDescription = (name: string) => {
@@ -116,7 +96,6 @@ export default function AIStatusIndicator() {
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 px-2">
           <div className="flex items-center gap-1">
-            <Brain className="h-4 w-4" />
             <Badge 
               variant={availableCount > 0 ? "default" : "destructive"}
               className="text-xs px-1 py-0 h-4"
@@ -144,7 +123,7 @@ export default function AIStatusIndicator() {
                 disabled={isChecking}
                 className="h-8 w-8 p-0"
               >
-                <RefreshCw className={`h-4 w-4 ${isChecking ? 'animate-spin' : ''}`} />
+                Actualizar
               </Button>
             </div>
           </CardHeader>
@@ -167,9 +146,9 @@ export default function AIStatusIndicator() {
                 
                 <div className="flex items-center gap-2">
                   {provider.isAvailable ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Disponible</span>
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-600" />
+                    <span className="text-red-600">No disponible</span>
                   )}
                 </div>
               </div>
@@ -177,7 +156,7 @@ export default function AIStatusIndicator() {
             
             {lastCheck && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground pt-2 border-t">
-                <Clock className="h-3 w-3" />
+
                 <span>
                   Última verificación: {lastCheck.toLocaleTimeString()}
                 </span>
