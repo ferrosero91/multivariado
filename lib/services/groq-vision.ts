@@ -28,10 +28,27 @@ export class GroqVisionService {
   }
 
   private loadApiKey() {
-    this.apiKey = 
-      process.env.NEXT_PUBLIC_GROQ_API_KEY ||
-      getGroqApiKey() ||
-      null
+    // Intentar múltiples fuentes de API key con logs de debug
+    const sources = [
+      { name: 'NEXT_PUBLIC_GROQ_API_KEY', value: process.env.NEXT_PUBLIC_GROQ_API_KEY },
+      { name: 'GROQ_API_KEY', value: process.env.GROQ_API_KEY },
+      { name: 'getGroqApiKey()', value: getGroqApiKey() }
+    ]
+
+    console.log('🔍 Buscando API key de Groq...')
+    
+    for (const source of sources) {
+      if (source.value) {
+        this.apiKey = source.value
+        console.log(`✅ API key encontrada desde: ${source.name}`)
+        return
+      } else {
+        console.log(`❌ ${source.name}: no disponible`)
+      }
+    }
+
+    this.apiKey = null
+    console.log('⚠️ No se encontró API key de Groq en ninguna fuente')
   }
 
   public setApiKey(apiKey: string) {
@@ -200,10 +217,19 @@ export class GroqVisionService {
   }
 
   isAvailable(): boolean {
-    if (!this.apiKey) {
-      this.loadApiKey()
+    // Siempre recargar la API key para asegurar que tenemos la más reciente
+    this.loadApiKey()
+    
+    const available = !!this.apiKey
+    console.log(`🔑 Groq Vision disponible: ${available}`)
+    
+    if (!available) {
+      console.log('💡 Para configurar Groq Vision:')
+      console.log('   - En desarrollo: Agrega NEXT_PUBLIC_GROQ_API_KEY a .env.local')
+      console.log('   - En producción: Configura GROQ_API_KEY en las variables de entorno')
     }
-    return !!this.apiKey
+    
+    return available
   }
 
   async testConnection(): Promise<boolean> {
