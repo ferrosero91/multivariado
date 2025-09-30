@@ -26,36 +26,40 @@ class EnvironmentManager {
   private loadEnvironment(): EnvConfig {
     // Estrategia múltiple para cargar variables de entorno
     const getEnvVar = (key: string): string | null => {
-      // 1. Variables de entorno estándar de Next.js
-      const nextEnv = process.env[`NEXT_PUBLIC_${key}`]
-      if (nextEnv && nextEnv.trim()) {
-        return nextEnv.trim()
-      }
+      console.log(`🔍 Buscando variable: ${key}`)
+      
+      // Lista de todas las posibles ubicaciones para la variable
+      const sources = [
+        { name: `NEXT_PUBLIC_${key}`, value: process.env[`NEXT_PUBLIC_${key}`] },
+        { name: key, value: process.env[key] },
+        { name: `process.env.${key}`, value: (globalThis as any).process?.env?.[key] },
+        { name: `process.env.NEXT_PUBLIC_${key}`, value: (globalThis as any).process?.env?.[`NEXT_PUBLIC_${key}`] }
+      ]
 
-      // 2. Variables de entorno sin prefijo (para casos especiales)
-      const directEnv = process.env[key]
-      if (directEnv && directEnv.trim()) {
-        return directEnv.trim()
-      }
-
-      // 3. En el cliente, verificar diferentes ubicaciones
+      // En el cliente, agregar más fuentes
       if (typeof window !== 'undefined') {
-        // __NEXT_DATA__
-        const nextData = (window as any).__NEXT_DATA__?.props?.pageProps?.env?.[`NEXT_PUBLIC_${key}`]
-        if (nextData) return nextData
-
-        // globalThis
-        const globalEnv = (globalThis as any).process?.env?.[`NEXT_PUBLIC_${key}`]
-        if (globalEnv) return globalEnv
-
-        // window directo
-        const windowEnv = (window as any)[`NEXT_PUBLIC_${key}`]
-        if (windowEnv) return windowEnv
+        sources.push(
+          { name: `__NEXT_DATA__.NEXT_PUBLIC_${key}`, value: (window as any).__NEXT_DATA__?.props?.pageProps?.env?.[`NEXT_PUBLIC_${key}`] },
+          { name: `window.NEXT_PUBLIC_${key}`, value: (window as any)[`NEXT_PUBLIC_${key}`] },
+          { name: `globalThis.NEXT_PUBLIC_${key}`, value: (globalThis as any)[`NEXT_PUBLIC_${key}`] }
+        )
       }
 
+      // Buscar en todas las fuentes
+      for (const source of sources) {
+        if (source.value && source.value.trim()) {
+          console.log(`✅ Variable ${key} encontrada en: ${source.name}`)
+          return source.value.trim()
+        } else {
+          console.log(`❌ ${source.name}: ${source.value ? 'vacía' : 'no disponible'}`)
+        }
+      }
+
+      console.log(`⚠️ Variable ${key} no encontrada en ninguna fuente`)
       return null
     }
 
+    console.log('🔧 Cargando configuración de entorno...')
     const config: EnvConfig = {
       GROQ_API_KEY: getEnvVar('GROQ_API_KEY'),
       OPENROUTER_API_KEY: getEnvVar('OPENROUTER_API_KEY'),
@@ -63,10 +67,12 @@ class EnvironmentManager {
       OCR_SPACE_API_KEY: getEnvVar('OCR_SPACE_API_KEY'),
     }
 
-    // Configuración cargada exitosamente
-
-    // La API key debe estar configurada en .env.local
-    // NEXT_PUBLIC_GROQ_API_KEY=tu_api_key_aqui
+    console.log('📋 Configuración final:', {
+      GROQ_API_KEY: config.GROQ_API_KEY ? '✅ Configurada' : '❌ No disponible',
+      OPENROUTER_API_KEY: config.OPENROUTER_API_KEY ? '✅ Configurada' : '❌ No disponible',
+      HUGGINGFACE_API_KEY: config.HUGGINGFACE_API_KEY ? '✅ Configurada' : '❌ No disponible',
+      OCR_SPACE_API_KEY: config.OCR_SPACE_API_KEY ? '✅ Configurada' : '❌ No disponible'
+    })
 
     return config
   }

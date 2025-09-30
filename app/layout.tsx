@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
+import { RuntimeEnvInjector, createRuntimeEnvProps } from "@/components/runtime-env-injector"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -17,9 +18,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const runtimeEnvProps = createRuntimeEnvProps()
+  
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        <RuntimeEnvInjector {...runtimeEnvProps} />
         <Suspense fallback={null}>{children}</Suspense>
         <Analytics />
       </body>
