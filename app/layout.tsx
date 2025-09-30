@@ -5,6 +5,8 @@ import { GeistMono } from "geist/font/mono"
 import { Suspense } from "react"
 import RuntimeEnvInjectorClient from "@/components/runtime-env-injector-client"
 import { createRuntimeEnvProps } from "@/components/runtime-env-injector"
+import { EnvScriptInjector } from "@/components/env-script-injector"
+import { RenderEnvFix } from "@/components/render-env-fix"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -23,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <EnvScriptInjector env={runtimeEnvProps.env} />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -45,6 +48,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        <RenderEnvFix />
         <RuntimeEnvInjectorClient />
         <Suspense fallback={null}>{children}</Suspense>
       </body>

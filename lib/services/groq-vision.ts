@@ -25,6 +25,33 @@ export class GroqVisionService {
 
   constructor() {
     this.loadApiKey()
+    this.setupEventListeners()
+  }
+
+  private setupEventListeners() {
+    // Solo en el cliente
+    if (typeof window !== 'undefined') {
+      // Escuchar eventos de actualización de variables de entorno
+      window.addEventListener('env-vars-updated', () => {
+        console.log('🔄 [GroqVision] Recargando API key por evento env-vars-updated')
+        this.apiKey = null // Forzar recarga
+        this.loadApiKey()
+      })
+      
+      // Escuchar evento de variables listas desde el script injector
+      window.addEventListener('env-vars-ready', (event: any) => {
+        console.log('🎉 [GroqVision] Variables de entorno listas desde script injector:', event.detail)
+        this.apiKey = null // Forzar recarga
+        this.loadApiKey()
+      })
+      
+      // Verificar si las variables ya están listas
+      if ((window as any).__ENV_VARS_READY__) {
+        console.log('✅ [GroqVision] Variables ya estaban listas, recargando API key')
+        this.apiKey = null
+        this.loadApiKey()
+      }
+    }
   }
 
   private loadApiKey() {
@@ -35,20 +62,30 @@ export class GroqVisionService {
       { name: 'getGroqApiKey()', value: getGroqApiKey() }
     ]
 
-    console.log('🔍 Buscando API key de Groq...')
+    // En el cliente, agregar fuentes adicionales para Render
+    if (typeof window !== 'undefined') {
+      sources.push(
+        { name: 'window.process.env.NEXT_PUBLIC_GROQ_API_KEY', value: (window as any).process?.env?.NEXT_PUBLIC_GROQ_API_KEY },
+        { name: 'window.NEXT_PUBLIC_GROQ_API_KEY', value: (window as any).NEXT_PUBLIC_GROQ_API_KEY },
+        { name: 'globalThis.process.env.NEXT_PUBLIC_GROQ_API_KEY', value: (globalThis as any).process?.env?.NEXT_PUBLIC_GROQ_API_KEY },
+        { name: '__NEXT_DATA__.props.pageProps.env.NEXT_PUBLIC_GROQ_API_KEY', value: (window as any).__NEXT_DATA__?.props?.pageProps?.env?.NEXT_PUBLIC_GROQ_API_KEY }
+      )
+    }
+
+    console.log('🔍 [Groq Vision] Buscando API key de Groq...')
     
     for (const source of sources) {
-      if (source.value) {
-        this.apiKey = source.value
-        console.log(`✅ API key encontrada desde: ${source.name}`)
+      if (source.value && source.value.trim()) {
+        this.apiKey = source.value.trim()
+        console.log(`✅ [Groq Vision] API key encontrada desde: ${source.name}`)
         return
       } else {
-        console.log(`❌ ${source.name}: no disponible`)
+        console.log(`❌ [Groq Vision] ${source.name}: ${source.value ? 'vacía' : 'no disponible'}`)
       }
     }
 
     this.apiKey = null
-    console.log('⚠️ No se encontró API key de Groq en ninguna fuente')
+    console.log('⚠️ [Groq Vision] No se encontró API key de Groq en ninguna fuente')
   }
 
   public setApiKey(apiKey: string) {
