@@ -1,48 +1,28 @@
-'use client'
-
-import { useEffect } from 'react'
-
-interface RuntimeEnvInjectorProps {
-  env: Record<string, string | undefined>
-}
-
-export function RuntimeEnvInjector({ env }: RuntimeEnvInjectorProps) {
-  useEffect(() => {
-    console.log('🔧 Inyectando variables de entorno en runtime...')
-    
-    // Inyectar en window
-    Object.entries(env).forEach(([key, value]) => {
-      if (value) {
-        (window as any)[key] = value
-        console.log(`✅ Runtime env: ${key} = ${value.substring(0, 10)}...`)
-      }
-    })
-
-    // Inyectar en globalThis.process.env
-    if (!(globalThis as any).process) {
-      (globalThis as any).process = { env: {} }
-    }
-
-    Object.entries(env).forEach(([key, value]) => {
-      if (value) {
-        (globalThis as any).process.env[key] = value
-      }
-    })
-
-    console.log('✅ Variables de entorno inyectadas correctamente')
-  }, [env])
-
-  return null
-}
-
-// Función helper para crear las props del servidor
+// Función del servidor para crear las props
 export function createRuntimeEnvProps() {
+  console.log('🏗️ Creando props de runtime env en el servidor...')
+  console.log('🌍 Entorno:', process.env.NODE_ENV)
+  
+  // Verificar todas las fuentes posibles
+  const envVars = {
+    NEXT_PUBLIC_GROQ_API_KEY: process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY,
+    NEXT_PUBLIC_OPENROUTER_API_KEY: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY,
+    NEXT_PUBLIC_HUGGINGFACE_API_KEY: process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_API_KEY,
+    NEXT_PUBLIC_OCR_SPACE_API_KEY: process.env.NEXT_PUBLIC_OCR_SPACE_API_KEY || process.env.OCR_SPACE_API_KEY,
+  }
+
+  // Log detallado de cada variable
+  Object.entries(envVars).forEach(([key, value]) => {
+    const publicKey = key
+    const privateKey = key.replace('NEXT_PUBLIC_', '')
+    
+    console.log(`🔍 ${key}:`)
+    console.log(`  - ${publicKey}: ${process.env[publicKey] ? '✅ Disponible' : '❌ No disponible'}`)
+    console.log(`  - ${privateKey}: ${process.env[privateKey] ? '✅ Disponible' : '❌ No disponible'}`)
+    console.log(`  - Valor final: ${value ? '✅ Disponible' : '❌ No disponible'}`)
+  })
+
   return {
-    env: {
-      NEXT_PUBLIC_GROQ_API_KEY: process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY,
-      NEXT_PUBLIC_OPENROUTER_API_KEY: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY,
-      NEXT_PUBLIC_HUGGINGFACE_API_KEY: process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_API_KEY,
-      NEXT_PUBLIC_OCR_SPACE_API_KEY: process.env.NEXT_PUBLIC_OCR_SPACE_API_KEY || process.env.OCR_SPACE_API_KEY,
-    }
+    env: envVars
   }
 }

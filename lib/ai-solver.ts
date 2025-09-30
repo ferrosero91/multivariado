@@ -149,7 +149,7 @@ class AIMathSolver {
               testUrl = 'https://openrouter.ai/api/v1/models'
               break
             case 'Hugging Face':
-              testUrl = 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-small'
+              testUrl = 'https://api-inference.huggingface.co/models/gpt2'
               break
             case 'Cohere':
               testUrl = 'https://api.cohere.ai/v1/models'
