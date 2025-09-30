@@ -1,0 +1,73 @@
+services:
+  # Servicio web principal - EasyCalPRO
+  - type: web
+    name: easycalpro
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    
+    # Configuración del servicio
+    healthCheckPath: /
+    
+    # Variables de entorno
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: PORT
+        value: "3000"
+      - key: HOSTNAME
+        value: "0.0.0.0"
+      
+      # Variables de API Keys (configurar en Render Dashboard)
+      - key: NEXT_PUBLIC_GROQ_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_OPENROUTER_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_HUGGINGFACE_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_OCR_SPACE_API_KEY
+        sync: false
+    
+    # Configuración de build
+    buildCommand: echo "Build se realiza en Docker"
+    startCommand: echo "Start se realiza en Docker"
+    
+    # Configuración de recursos
+    disk:
+      name: easycalpro-disk
+      mountPath: /app
+      sizeGB: 1
+    
+    # Configuración de red
+    domains:
+      - easycalpro.onrender.com
+    
+    # Configuración de autoscaling (solo en planes pagos)
+    # autoDeploy: true
+    
+    # Headers de seguridad
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+
+# Configuración de base de datos (opcional para futuras expansiones)
+# databases:
+#   - name: easycalpro-db
+#     databaseName: easycalpro
+#     user: easycalpro_user
+#     plan: free
+#     region: oregon

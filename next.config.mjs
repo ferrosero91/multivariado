@@ -9,6 +9,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Habilitar output standalone para Docker
+  output: 'standalone',
   // Mejorar carga de variables de entorno en el cliente
   env: {
     NEXT_PUBLIC_GROQ_API_KEY: process.env.NEXT_PUBLIC_GROQ_API_KEY,
