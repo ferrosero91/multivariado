@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Suspense } from "react"
-import { RuntimeEnvInjectorClient } from "@/components/runtime-env-injector-client"
+import RuntimeEnvInjectorClient from "@/components/runtime-env-injector-client"
 import { createRuntimeEnvProps } from "@/components/runtime-env-injector"
 import "./globals.css"
 
@@ -22,8 +22,30 @@ export default function RootLayout({
   
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              console.log('🏗️ Inyectando variables de entorno desde el servidor...');
+              window.__RUNTIME_ENV__ = ${JSON.stringify(runtimeEnvProps.env)};
+              console.log('📦 Variables inyectadas:', Object.keys(window.__RUNTIME_ENV__));
+              console.log('🔢 Total de variables:', Object.keys(window.__RUNTIME_ENV__).length);
+              
+              // Inyectar en process.env para compatibilidad
+              if (!window.process) window.process = { env: {} };
+              Object.assign(window.process.env, window.__RUNTIME_ENV__);
+              
+              // Inyectar en globalThis
+              if (!globalThis.process) globalThis.process = { env: {} };
+              Object.assign(globalThis.process.env, window.__RUNTIME_ENV__);
+              
+              console.log('✅ Variables de entorno inyectadas correctamente');
+            `,
+          }}
+        />
+      </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <RuntimeEnvInjectorClient {...runtimeEnvProps} />
+        <RuntimeEnvInjectorClient />
         <Suspense fallback={null}>{children}</Suspense>
       </body>
     </html>

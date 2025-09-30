@@ -2,53 +2,41 @@
 
 import { useEffect } from 'react'
 
-interface RuntimeEnvInjectorProps {
-  env: Record<string, string | undefined>
-}
-
-// Componente del cliente para inyectar variables
-export function RuntimeEnvInjectorClient({ env }: RuntimeEnvInjectorProps) {
+export default function RuntimeEnvInjectorClient() {
   useEffect(() => {
-    console.log('🔧 Inyectando variables de entorno en runtime...')
-    console.log('📦 Variables recibidas del servidor:', Object.keys(env))
-    
-    // Verificar qué variables tienen valores
-    Object.entries(env).forEach(([key, value]) => {
-      if (value) {
-        console.log(`✅ ${key}: Disponible (${value.substring(0, 10)}...)`)
-      } else {
-        console.log(`❌ ${key}: No disponible`)
-      }
-    })
+    // Solo ejecutar en el cliente
+    if (typeof window === 'undefined') return
 
-    // Inyectar en window
-    Object.entries(env).forEach(([key, value]) => {
-      if (value) {
-        (window as any)[key] = value
+    try {
+      // Obtener las variables del script inline
+      const runtimeEnv = (window as any).__RUNTIME_ENV__
+      
+      if (!runtimeEnv) {
+        console.log('⚠️ No se encontraron variables de entorno en __RUNTIME_ENV__')
+        return
       }
-    })
 
-    // Inyectar en globalThis.process.env
-    if (!(globalThis as any).process) {
-      (globalThis as any).process = { env: {} }
+      console.log('🔧 Inyectando variables de entorno:', Object.keys(runtimeEnv))
+
+      // Asegurar que process.env existe en window
+      if (!(window as any).process) {
+        (window as any).process = { env: {} }
+      }
+
+      // Inyectar cada variable
+      for (const [key, value] of Object.entries(runtimeEnv)) {
+        if (typeof value === 'string') {
+          // Solo inyectar en window.process.env para evitar errores
+          (window as any).process.env[key] = value
+          console.log(`✅ ${key}: disponible`)
+        }
+      }
+      
+      console.log('✅ Variables inyectadas correctamente en window.process.env')
+    } catch (error) {
+      console.error('❌ Error al inyectar variables:', error)
     }
-
-    Object.entries(env).forEach(([key, value]) => {
-      if (value) {
-        (globalThis as any).process.env[key] = value
-      }
-    })
-
-    // Verificar inyección
-    console.log('🔍 Verificando inyección:')
-    Object.keys(env).forEach(key => {
-      const windowValue = (window as any)[key]
-      const processValue = (globalThis as any).process?.env?.[key]
-      console.log(`  ${key}: window=${!!windowValue}, process.env=${!!processValue}`)
-    })
-
-    console.log('✅ Variables de entorno inyectadas correctamente')
-  }, [env])
+  }, [])
 
   return null
 }
